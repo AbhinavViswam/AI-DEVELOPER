@@ -3,7 +3,6 @@ import { UserContext } from '../context/UserContext.jsx';
 import axios from '../config/axios.js';
 import { Link, useNavigate } from 'react-router-dom';
 
-
 const Register = () => {
     const [email,setEmail]=useState("")
     const [password,setPassword]=useState("")
