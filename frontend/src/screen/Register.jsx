@@ -1,12 +1,29 @@
-import React from 'react';
+import React,{useState,useContext} from 'react';
+import { UserContext } from '../context/UserContext.jsx';
+import axios from '../config/axios.js';
 import { Link, useNavigate } from 'react-router-dom';
 
-const Register = () => {
-    const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+const Register = () => {
+    const [email,setEmail]=useState("")
+    const [password,setPassword]=useState("")
+    const {setUser}=useContext(UserContext)
+    const navigate = useNavigate()
+
+    const handleSubmit = async(e) => {
         e.preventDefault();
-        navigate('/dashboard');
+        try {
+            const res=await axios.post("/users/register",{
+                email,
+                password
+            })
+            localStorage.setItem(res.data.token)
+            setUser(res.data.o)
+            navigate("/login")
+        } catch (error) { 
+            console.log(error)
+        }
+        
     };
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-900">
@@ -16,6 +33,7 @@ const Register = () => {
                     <div className="mb-4">
                         <label className="block text-gray-400 mb-2" htmlFor="email">Email</label>
                         <input
+                            onChange={(e)=>setEmail(e.target.value)}
                             type="email"
                             id="email"
                             className="w-full p-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -25,6 +43,7 @@ const Register = () => {
                     <div className="mb-6">
                         <label className="block text-gray-400 mb-2" htmlFor="password">Password</label>
                         <input
+                            onChange={(e)=>setPassword(e.target.value)}
                             type="password"
                             id="password"
                             className="w-full p-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"

@@ -1,12 +1,14 @@
 import "./index.css";
 import AppRoutes from "./routes/AppRoutes";
-
+import UserProvider from "./context/UserContext";
 
 function App() {  
   return (
-    <div className="App">
-      <AppRoutes />
-    </div>
+    
+  <UserProvider>
+    <AppRoutes />
+  </UserProvider>
+
   );
 }
 

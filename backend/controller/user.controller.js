@@ -10,6 +10,7 @@ export const createUserController =async(req,res)=>{
         email,
         password:hashedPassword
     })
+    delete user._doc.password
     return res.status(200).json({m:"user registered", o:user})
 }
 
@@ -27,6 +28,8 @@ export const userLogin =async(req,res)=>{
         return res.status(400).json({e:"Invalid credentials"})
     }
     const token=user.generateJWT()
+    res.cookie('token',token,{httpOnly:true})
+    delete user._doc.password
     return res.status(200).json({m:"User logged in",o:user,token})
 }
 
