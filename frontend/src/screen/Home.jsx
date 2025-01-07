@@ -1,32 +1,91 @@
-import React, { useContext, useState } from 'react'
-import { UserContext } from '../context/UserContext'
-import axios from "../config/axios"
+import React, { useContext, useState, useEffect } from 'react';
+import { UserContext } from '../context/UserContext';
+import axios from '../config/axios';
+
+//icons
+import { FaUser } from "react-icons/fa";
+
 
 function Home() {
-  const {user}=useContext(UserContext);
-  const [isModal ,setIsModal]=useState(false);
-  const [projectName, setProjectName]=useState("");
-  const createProject=async(e)=>{
+  const { user } = useContext(UserContext);
+  const [isModal, setIsModal] = useState(false);
+  const [projectName, setProjectName] = useState("");
+  const [projects, setProjects] = useState([]);
+
+  useEffect(() => {
+    axios.get("/project").then((res) => setProjects(res.data.o));
+  }, [projectName]);
+
+  const createProject = async (e) => {
     e.preventDefault();
-    await axios.post("/project/create",{
-      projectName
-    })
-    setProjectName("")
+    await axios.post("/project/create", {
+      projectName,
+    });
+    setProjectName("");
     setIsModal(false);
-  }
+  };
+
   return (
-    <div>
-      <button onClick={()=>setIsModal(true)}>hello</button>
+    <div className="p-4 bg-gray-100 min-h-screen">
+      <div className=' w-[15vw] flex flex-col justify-center'>
+      <button
+        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+        onClick={() => setIsModal(true)}
+      >
+        New Project
+      </button>
+
       {isModal && (
-        <div>
-          <form onSubmit={createProject}>
-            <input type="text" placeholder='Project name' value={projectName} onChange={(e)=>setProjectName(e.target.value)} />
-            <button>Create</button>
-          </form>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-xl font-semibold mb-4">Create New Project</h2>
+            <form onSubmit={createProject} className="space-y-4">
+              <input
+                type="text"
+                placeholder="Project name"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <div className="flex justify-end space-x-2">
+                <button
+                  type="button"
+                  className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
+                  onClick={() => setIsModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  Create
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
+
+      <div className=" my-6 w-[15vw] h-screen flex flex-col gap-2">
+        {projects.map((project,index) => (
+          <button  key={index}>
+          <div
+           
+            className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition flex justify-around items-center gap-2"
+          >
+            <h1 className="text-lg font-semibold text-gray-800">{project.name}</h1>
+           <div className='flex gap-1 items-center justify-center'>
+           <FaUser/>
+           <p className="text-sm text-gray-600"> {project.userid.length}</p>
+           </div>
+          </div>
+          </button>
+        ))}
+      </div>
+      </div>
     </div>
-  )
+  );
 }
 
-export default Home
+export default Home;
