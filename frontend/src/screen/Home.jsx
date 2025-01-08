@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { UserContext } from '../context/UserContext';
 import axios from '../config/axios';
+import { useNavigate } from 'react-router-dom';
 
 //icons
 import { FaUser } from "react-icons/fa";
@@ -8,6 +9,7 @@ import { FaUser } from "react-icons/fa";
 
 function Home() {
   const { user } = useContext(UserContext);
+  const navigate=useNavigate()
   const [isModal, setIsModal] = useState(false);
   const [projectName, setProjectName] = useState("");
   const [projects, setProjects] = useState([]);
@@ -69,7 +71,7 @@ function Home() {
 
       <div className=" my-6 w-[15vw] h-screen flex flex-col gap-2">
         {projects.map((project,index) => (
-          <button  key={index}>
+          <button onClick={()=>navigate("/project",{state:project})}  key={index}>
           <div
            
             className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition flex justify-around items-center gap-2"
