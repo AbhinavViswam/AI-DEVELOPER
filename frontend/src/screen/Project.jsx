@@ -1,25 +1,40 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { FaUsers } from "react-icons/fa";
+import axios from "../config/axios"
 
 function Project() {
     const location = useLocation()
-    console.log(location.state)
-
-    const [selectedUserId, setSelectedUserId] = useState(null)
+    const [partner,setPartner]=useState("")
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [users,setUsers]=useState([])
 
-    const handleUserClick = (id) => {
-        setSelectedUserId(id)
+    const openModal = () => {
+        setIsModalOpen(true)
+    }
+    const showCollaborators=async()=>{
+        const res=await axios.get(`/project/showmyproject/${location.state.project._id}`)
+            setUsers(res.data.o.users);
+            console.log(users)
     }
 
-    const openModal = () => {
-        setIsLoading(true)
-        setIsModalOpen(true)
-        setIsLoading(false)
+    const addCollab=async(e)=>{
+        e.preventDefault()
+      
+        await axios.put(`/project/addpartner/${location.state.project._id}`,{
+            partnerEmail:partner 
+        })
+        setPartner("")
+
     }
+
+    useEffect(()=>{
+        setIsLoading(true)
+        showCollaborators()
+        setIsLoading(false)
+    },[isModalOpen,partner])
+
     return (
         <div className='flex w-screen h-screen'>
             <section className='h-screen min-w-96 bg-green-100'>
@@ -45,26 +60,31 @@ function Project() {
                                 <div className='loader'>loading...</div> {/* Add your loader component or CSS here */}
                             </div>
                         ) : (
-                            <>
+                            <div>
+                                <div className='flex flex-col justify-center px-4 py-2'>
+                                    <form onSubmit={addCollab} className='flex justify-around'>
+                                        <input type="text" value={partner} onChange={(e)=>setPartner(e.target.value)} className='border-2 border-green-500 mt-4 px-4 py-2 rounded outline-none'  />
+                                        <button className='mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700'>Add Collaborator</button>
+                                    </form>
+                                <button 
+                                    className='mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700'
+                                    onClick={() => setIsModalOpen(false)}
+                                >
+                                    Close
+                                </button>
+                                </div>
                                 <ul>
                                     {users.map((user,i) => (
                                         <li 
                                             key={i} 
                                             className='p-2 border-b cursor-pointer hover:bg-gray-200'
-                                            onClick={() => handleUserClick(user.id)}
                                         >
-                                            <p className='text-sm'>{user.email}</p>
-                                            <p className='text-xs opacity-50'>{user.description}</p>
+                                            <p className='text-sm'>{user.userEmail}</p>
                                         </li>
                                     ))}
                                 </ul>
-                                <button 
-                                    className='mt-4 bg-red-500 text-white px-4 py-2 rounded'
-                                    onClick={() => setIsModalOpen(false)}
-                                >
-                                    Close
-                                </button>
-                            </>
+                               
+                            </div>
                         )}
                     </div>
                 </div>

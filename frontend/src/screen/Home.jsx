@@ -88,7 +88,7 @@ function Home() {
                   <h1 className="text-lg font-semibold text-gray-800">{project.name}</h1>
                   <div className='flex gap-1 items-center justify-center'>
                     <FaUser />
-                    <p className="text-sm text-gray-600"> {project.userid.length}</p>
+                    <p className="text-sm text-gray-600"> {project.users.length}</p>
                   </div>
                 </div>
               </button>
