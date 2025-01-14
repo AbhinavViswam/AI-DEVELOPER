@@ -4,6 +4,7 @@ import cors from "cors"
 
 import userRoute from "./routes/user.route.js"
 import projectRoute from "./routes/project.route.js"
+import aiRoute from "./routes/ai.route.js"
 
 const app=express()
 
@@ -14,5 +15,6 @@ app.use(cors())
 
 app.use('/users',userRoute)
 app.use("/project",projectRoute)
+app.use("/ai",aiRoute)
 
 export default app

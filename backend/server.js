@@ -1,11 +1,13 @@
 import dotenv from "dotenv"
 import jwt from "jsonwebtoken"
 import http from "http"
-import Project from "./models/project.model.js";
 import { Server } from "socket.io";
 
 import app from "./app.js";
 import DB_CONNECT from "./db/db.js";
+import Project from "./models/project.model.js";
+import { generateResult } from "./middleware/ai.middleware.js";
+
 
 dotenv.config();
 DB_CONNECT()
@@ -39,14 +41,28 @@ io.on('connection',socket => {
     console.log("a user connected...");
     socket.join(socket.roomId);
 
+    socket.on('project-message', async data => {
+        const isAipresent=data.message.includes("@ai");       
+        socket.broadcast.to(socket.roomId).emit('project-message', data) 
+        if(isAipresent){
+            const prompt=data.message.replace("@ai ","")
+            const result=await generateResult(prompt);
+            io.to(socket.roomId).emit('project-message', {
+                message: result,
+                sender: {
+                    _id: 'ai',
+                    email: 'AI'
+                }
+            })
+            return;
+        }
 
-    socket.on('project-message', data => {
-        console.log(data);
-        socket.broadcast.to(socket.roomId).emit('project-message', data);
     });
 
-socket.on('event', data => { /* … */ });
-socket.on('disconnect', () => { /* … */ });
+socket.on('disconnect', () => {
+    console.log('user disconnected');
+    socket.leave(socket.roomId);
+});
 });
 
 const port=process.env.PORT || 3000
