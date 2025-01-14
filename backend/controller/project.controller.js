@@ -18,6 +18,7 @@ export const createProject=async(req,res)=>{
 
 export const showProject=async(req,res)=>{
     const userEmail=req.user.email
+    console.log(userEmail);
     const user=await User.findOne({email:userEmail});
     if(!user){
         return res.status(404).json({e:"User doesnot exists"})

@@ -17,7 +17,9 @@ const Login = () => {
                 email,
                 password
             })
+            console.log(res.data.o)
             localStorage.setItem('token',res.data.token)
+            localStorage.setItem('user', JSON.stringify(res.data.o));
             setUser(res.data.o)
             console.log(res.data)
             navigate("/")

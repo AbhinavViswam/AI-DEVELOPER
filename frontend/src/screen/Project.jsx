@@ -1,20 +1,26 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect ,useContext} from 'react'
 import { useLocation } from 'react-router-dom'
 import { FaUsers } from "react-icons/fa";
 import axios from "../config/axios"
+import { inititializeSocket, sendMessage, recieveMessage } from '../config/socket';
+import { UserContext } from '../context/UserContext';
 
 function Project() {
     const location = useLocation()
     const [partner,setPartner]=useState("")
+    const [owner,setOwner]=useState("")
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [users,setUsers]=useState([])
+    const [message,setMessage]=useState("")
+    const {user}=useContext(UserContext)
 
     const openModal = () => {
         setIsModalOpen(true)
     }
     const showCollaborators=async()=>{
         const res=await axios.get(`/project/showmyproject/${location.state.project._id}`)
+        setOwner(res.data.o.owner)
             setUsers(res.data.o.users);
             console.log(users)
     }
@@ -29,11 +35,28 @@ function Project() {
 
     }
 
+    function send(){
+        sendMessage("project-message",{
+            message,
+            sender:user
+        })
+        console.log(user)
+        setMessage("")
+    }
+
     useEffect(()=>{
-        setIsLoading(true)
-        showCollaborators()
-        setIsLoading(false)
-    },[isModalOpen,partner])
+        async function loadCollabs(){
+            setIsLoading(true)
+            await showCollaborators()
+            setIsLoading(false)
+        };
+        loadCollabs()
+    },[isModalOpen])
+
+    useEffect(()=>{
+        console.log("project id",location.state.project._id)
+        inititializeSocket(location.state.project._id)
+    },[])
 
     return (
         <div className='flex w-screen h-screen'>
@@ -50,6 +73,15 @@ function Project() {
                     <p className='text-xs opacity-50'>user123@mail.com</p> 
                     <p className='text-sm'>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p> 
                 </div>
+                <div className="inputField max-w-96 min-w-96 flex absolute bottom-0">
+                        <input
+                        value={message}
+                        onChange={(e)=>setMessage(e.target.value)}
+                            className='p-2 px-4 outline-none flex-grow border-2 border-black' type="text" placeholder='Enter a message' />
+                        <button
+                            onClick={send}
+                            className='px-5 bg-slate-950 text-white'>send</button>
+                    </div>
             </section>
 
             {isModalOpen && (
@@ -73,6 +105,7 @@ function Project() {
                                     Close
                                 </button>
                                 </div>
+                                <h1>Owner:{JSON.stringify(owner)}</h1>
                                 <ul>
                                     {users.map((user,i) => (
                                         <li 

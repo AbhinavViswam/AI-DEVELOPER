@@ -13,13 +13,15 @@ function Home() {
   const [projectName, setProjectName] = useState("");
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
+  console.log(projects)
+  console.log(user)
 
   useEffect(() => {
     setLoading(true);
     axios.get("/project")
       .then((res) => setProjects(res.data.o))
       .finally(() => setLoading(false));
-  }, [projectName]);
+  }, []);
 
   const createProject = async (e) => {
     e.preventDefault();
@@ -34,6 +36,7 @@ function Home() {
 
   return (
     <div className="p-4 bg-gray-100 min-h-screen">
+      {user?.email}
       <div className=' w-[15vw] flex flex-col justify-center'>
         <button
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
