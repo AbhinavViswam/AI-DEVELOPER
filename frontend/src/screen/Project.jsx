@@ -1,4 +1,4 @@
-import React, { useState, useEffect ,useContext} from 'react'
+import React, { useState, useEffect ,useContext,useRef} from 'react'
 import { useLocation } from 'react-router-dom'
 import { FaUsers } from "react-icons/fa";
 import axios from "../config/axios"
@@ -13,6 +13,9 @@ function Project() {
     const [isLoading, setIsLoading] = useState(false)
     const [users,setUsers]=useState([])
     const [message,setMessage]=useState("")
+   
+    const messageBox = useRef(null);
+    
     const {user}=useContext(UserContext)
 
     const openModal = () => {
@@ -41,6 +44,7 @@ function Project() {
             sender:user
         })
         console.log(user)
+        appendOutgoingMessages(message)
         setMessage("")
     }
 
@@ -56,7 +60,50 @@ function Project() {
     useEffect(()=>{
         console.log("project id",location.state.project._id)
         inititializeSocket(location.state.project._id)
+
+        recieveMessage('project-message',(data)=>{
+            console.log(data)
+            appendIncomingMessages(data)
+        })
+
     },[])
+
+    function appendIncomingMessages(messageObject) {
+      
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('max-w-[250px]', 'bg-white', 'min-h-10', 'flex', 'flex-col', 'rounded-xl', 'py-1', 'px-2', 'mt-3', 'ml-1');
+        
+        messageDiv.innerHTML = `            
+            <p class='text-xs opacity-50 text-right'>${messageObject.sender.email}</p>
+            <p class='text-sm text-right'>${messageObject.message}</p>
+        `;
+        messageBox.current.appendChild(messageDiv);
+    }
+    
+    function appendOutgoingMessages(messageText) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add(
+            'max-w-[250px]',
+            'bg-blue-100',
+            'min-h-10',
+            'flex',
+            'flex-col',
+            'rounded-xl',
+            'py-1',
+            'px-2',
+            'mt-3',
+            'ml-auto', // Aligns to the right for outgoing messages
+            'mr-1' // Adds a margin from the edge
+        );
+    
+        messageDiv.innerHTML = `
+            <p class='text-xs opacity-50 text-right'>You</p>
+            <p class='text-sm text-right'>${messageText}</p>
+        `;
+    
+        messageBox.current.appendChild(messageDiv);
+    }
+
 
     return (
         <div className='flex w-screen h-screen'>
@@ -69,9 +116,8 @@ function Project() {
                         <FaUsers className='text-2xl'/>
                     </button>
                 </div>
-                <div className='max-w-[250px] bg-white min-h-10 flex flex-col rounded-xl py-1 px-2 mt-3 ml-1'>
-                    <p className='text-xs opacity-50'>user123@mail.com</p> 
-                    <p className='text-sm'>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p> 
+                <div className='message-box max-w-[250px] bg-white min-h-10 flex flex-col rounded-xl py-1 px-2 mt-3 ml-1 h-[calc(100vh-200px)] overflow-y-auto' ref={messageBox}>
+                    {/* Messages will be appended here */}
                 </div>
                 <div className="inputField max-w-96 min-w-96 flex absolute bottom-0">
                         <input
