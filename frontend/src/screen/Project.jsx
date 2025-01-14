@@ -32,7 +32,7 @@ function Project() {
             partnerEmail:partner 
         })
         setPartner("")
-
+        await showCollaborators();
     }
 
     function send(){
@@ -51,7 +51,7 @@ function Project() {
             setIsLoading(false)
         };
         loadCollabs()
-    },[isModalOpen])
+    },[])
 
     useEffect(()=>{
         console.log("project id",location.state.project._id)

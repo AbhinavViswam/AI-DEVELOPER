@@ -25,7 +25,7 @@ export const showProject=async(req,res)=>{
     }
     const project = await Project.find({
         $or: [
-            { userid: { $in: [user._id] } }, 
+            { "users.userid": { $in: [user._id] } }, 
             { owner: user._id }
         ]
     });

@@ -14,7 +14,7 @@ function Home() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
   console.log(projects)
-  console.log(user)
+  // console.log(user)
 
   useEffect(() => {
     setLoading(true);
