@@ -56,7 +56,6 @@ io.on('connection',socket => {
             })
             return;
         }
-
     });
 
 socket.on('disconnect', () => {

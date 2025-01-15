@@ -17,11 +17,15 @@ function Home() {
   // console.log(user)
 
   useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  const fetchProjects = () => {
     setLoading(true);
     axios.get("/project")
       .then((res) => setProjects(res.data.o))
       .finally(() => setLoading(false));
-  }, []);
+  };
 
   const createProject = async (e) => {
     e.preventDefault();
@@ -31,6 +35,7 @@ function Home() {
     });
     setProjectName("");
     setIsModal(false);
+    fetchProjects();
     setLoading(false);
   };
 

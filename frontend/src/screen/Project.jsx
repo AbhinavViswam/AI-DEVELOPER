@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { FaUsers } from "react-icons/fa";
+import { IoIosClose } from "react-icons/io";
 import axios from "../config/axios";
 import { inititializeSocket, sendMessage, recieveMessage } from '../config/socket';
 import { UserContext } from '../context/UserContext';
@@ -15,6 +16,19 @@ function Project() {
     const [users, setUsers] = useState([]);
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]);
+    const [currentFile,setCurrentFile]=useState(null)
+    const [openFiles,setOpenFiles]=useState([])
+
+    const [fileTree,setFileTree] = useState({
+        "app.js":{
+            content:'const express=require("express");'
+        },
+        "package.json":{
+            content:`{
+            "name": "project",
+            }`
+        }
+    });
    
     const messageBox = useRef(null);
     
@@ -23,6 +37,17 @@ function Project() {
     const openModal = () => {
         setIsModalOpen(true);
     };
+
+    function WriteAiMessage({ message }) {
+        const messageObject=JSON.parse(message);
+        return (
+            <div className='overflow-auto p-2'>
+                <Markdown
+                    children={messageObject.text}
+                />
+            </div>
+        );
+    }
 
     const showCollaborators = async () => {
         const res = await axios.get(`/project/showmyproject/${location.state.project._id}`);
@@ -85,7 +110,7 @@ function Project() {
 
     return (
         <div className='flex w-screen h-screen'>
-            <section className='h-screen min-w-96 bg-green-100'>
+            <section className='left h-screen min-w-96 bg-green-100'>
                 <div className='min-h-16 w-96 bg-green-300 relative'>
                     <button 
                         className='absolute right-2 top-2 text-black px-2 py-2 rounded-[50%] bg-white'
@@ -96,9 +121,13 @@ function Project() {
                 </div>
                 <div className='message-box bg-green-50 min-w-96 max-w-96 flex flex-col py-1 px-2 min-h-[84vh] max-h-[84vh] overflow-y-auto scroll-smooth' ref={messageBox}>
                     {messages.map((msg, index) => (
-                        <div key={index} className={`max-w-[250px] w-full flex flex-col rounded-xl px-2 py-1 mt-3 ${msg.sender.email === user.email ? 'bg-blue-100 ml-auto mr-1' : 'bg-green-300 ml-0'}`}>
+                        <div key={index} className={`max-w-[250px] w-full flex flex-col rounded-xl px-2 py-1 mt-3 ${msg.sender.email === user.email ? 'bg-blue-100 ml-auto mr-1' : msg.sender.email === 'AI' ? 'bg-gray-800 text-white max-w-[400px] overflow-x-auto min-h-max' : 'bg-green-300 ml-0'}`}>
                             <p className={`text-xs opacity-50 ${msg.sender.email === user.email ? 'text-right' : 'text-left'}`}>{msg.sender.email === user.email ? 'You' : msg.sender.email}</p>
-                            <Markdown className={`text-sm ${msg.sender.email === user.email ? 'text-right' : 'text-left'}`}>{msg.message}</Markdown>
+                            {msg.sender.email === 'AI' ? (
+                                <WriteAiMessage message={msg.message} />
+                            ) : (
+                                <Markdown className={`text-sm ${msg.sender.email === user.email ? 'text-right' : 'text-left'}`}>{msg.message}</Markdown>
+                            )}
                         </div>
                     ))}
                 </div>
@@ -111,6 +140,50 @@ function Project() {
                         onClick={send}
                         className='px-5 bg-slate-950 text-white'>send</button>
                 </div>
+            </section>
+
+            <section className='right h-full flex flex-grow bg-green-50'>
+                <div className='FileExplorer bg-green-100 min-w-60'>
+                    <div className="filetree flex flex-col gap-1">
+                        {
+                            Object.keys(fileTree).map((file,index)=>(
+                                <button onClick={() => {
+                                    setCurrentFile(file)
+                                    setOpenFiles([...new Set([...openFiles, file])])
+                                }
+
+                                } key={index} className="tree-element bg-slate-200 p-2">
+                            <p>{file}</p>
+                        </button>
+                            ))
+                        }
+                    </div>
+                </div>
+                {
+                    currentFile &&(
+                
+                <div className='code-editor flex flex-col flex-grow h-full'>
+                    <div className="top flex items-center justify-between bg-slate-200 p-2 max-w-max">
+                    {
+                        openFiles.map((file,index)=>(
+                            <div>
+                                <button onClick={()=>setCurrentFile(file)} key={index} className="p-2">{file}</button>
+                                <button onClick={()=>setCurrentFile(null)}><IoIosClose/></button>
+                            </div>
+                        ))  
+                    }
+                    </div>
+                    <div className="bottom flex flex-grow">
+                        {
+                            fileTree[currentFile] && (
+                                <textarea value={fileTree[currentFile].content} onChange={(e)=>setFileTree({...fileTree,[currentFile]:{content:e.target.value}})} className="w-full h-full p-2 outline-none" />
+
+                        )}
+                    </div>
+
+                </div>
+)}
+
             </section>
 
             {isModalOpen && (
