@@ -96,7 +96,8 @@ const model = genAI.getGenerativeModel({
        
        </example>
     
- IMPORTANT : don't use file name like routes/index.js
+ IMPORTANT : don't use file name like routes/index.js, instead just use route.js
+ Also always try to give the response only in the above format like i gave in the example
        
        
     `

@@ -7,6 +7,8 @@ import { inititializeSocket, sendMessage, recieveMessage } from '../config/socke
 import { UserContext } from '../context/UserContext';
 import Markdown from 'markdown-to-jsx';
 
+
+
 function Project() {
     const location = useLocation();
     const [partner, setPartner] = useState("");
@@ -16,17 +18,9 @@ function Project() {
     const [users, setUsers] = useState([]);
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]);
-    const [fileTree, setFileTree] = useState({
-        "app.js": {
-            content: "import express"
-        },
-        "package.json": {
-            content: "{name:project}"
-        }
-    });
+    const [fileTree, setFileTree] = useState({});
     const [currentFile, setCurrentFile] = useState(null);
     const [openFiles, setOpenFiles] = useState(new Set());
-
     const messageBox = useRef(null);
 
     const { user } = useContext(UserContext);
@@ -37,6 +31,7 @@ function Project() {
 
     function WriteAiMessage({ message }) {
         const messageObject = JSON.parse(message);
+        console.log("parsed",messageObject.fileTree);
         return (
             <div className='overflow-auto p-2'>
                 <Markdown
@@ -82,12 +77,21 @@ function Project() {
     }, []);
 
     useEffect(() => {
-        console.log("project id", location.state.project._id);
         inititializeSocket(location.state.project._id);
 
+
         recieveMessage('project-message', (data) => {
-            console.log(data);
+            try{
+            const message=JSON.parse(data.message);
+            console.log(message)
+            if(message.fileTree){
+                setFileTree(message.fileTree);
+                return
+            }
+         
+        }catch(e){  
             appendIncomingMessages(data);
+        }
         });
     }, []);
 
@@ -117,7 +121,7 @@ function Project() {
     return (
         <div className='flex w-screen h-screen'>
             <section className='h-screen min-w-96 bg-gray-900'>
-                <div className='min-h-16 w-96 bg-gray-800 relative'>
+                <div className='min-h-16 w-96 bg-gray-900 relative'>
                     <h1 className='text-2xl text-white p-2'>{location.state.project.name}</h1>
                     <button
                         className='absolute right-2 top-2 text-white px-2 py-2 rounded-[50%] bg-gray-700'
@@ -149,21 +153,22 @@ function Project() {
                 </div>
             </section>
 
-            <section className='right w-screen h-screen bg-gray-950 flex flex-grow'>
-                <div className="file-tree flex flex-col min-w-60 max-w-60 gap-1 h-screen overflow-y-auto bg-gray-800">
+            <section className='right w-screen h-screen bg-gray-800 flex flex-grow'>
+                <div className="file-tree flex flex-col min-w-60 max-w-60 h-screen overflow-y-auto bg-gray-600">
                     {Object.keys(fileTree).map((file) => (
-                        <button className='bg-gray-700 min-h-8 text-sm text-white' key={file} onClick={() => {
+                        <button className='bg-gray-950 min-h-10 border-b border-b-white text-sm text-white' key={file} onClick={() => {
                             setCurrentFile(file);
                             setOpenFiles(new Set([...openFiles, file]));
                         }}>{file}</button>
                     ))}
                 </div>
-                {currentFile && (
+               
                     <div className="code-editor flex-grow flex flex-col">
-                        <div className='top flex'>
+                        <div className='top flex justify-between'>
+                            <div className="files flex">
                             {
                                 Array.from(openFiles).map((file, i) => (
-                                    <div key={i} className="code-editor-header max-w-max flex justify-between items-center p-2 bg-gray-800">
+                                    <div key={i} className="code-editor-header border-r border-r-white max-w-max flex justify-between items-center p-2 bg-gray-900">
                                         <button className='text-sm font-semibold text-white' onClick={() => setCurrentFile(file)}>{file}</button>
                                         <button onClick={() => closeFile(file)} className='p-2 text-white'>
                                             <IoIosClose />
@@ -171,14 +176,29 @@ function Project() {
                                     </div>
                                 ))
                             }
+                            </div>
                         </div>
                         <textarea
-                            className='w-full h-full p-2 border-2 border-gray-700 bg-gray-800 text-white rounded-md focus:outline-none'
-                            value={fileTree[currentFile].content}
-                            onChange={(e) => setFileTree({ ...fileTree, [currentFile]: { content: e.target.value } })}
-                        />
+    className="w-full h-full p-2 border-2 border-gray-700 bg-gray-800 text-white rounded-md focus:outline-none"
+    value={fileTree[currentFile]?.file?.contents || ''}
+    onChange={(e) =>
+        setFileTree({
+            ...fileTree,
+            [currentFile]: {
+                ...fileTree[currentFile],
+                file: {
+                    ...fileTree[currentFile]?.file,
+                    contents: e.target.value,
+                },
+            },
+        })
+    }
+/>
+
                     </div>
-                )}
+
+                   
+                
             </section>
 
             {isModalOpen && (
