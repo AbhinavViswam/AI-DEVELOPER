@@ -37,6 +37,7 @@ json
     Examples: 
 
     <example>
+    user:Create an express application 
  
     response: {
 
@@ -104,11 +105,8 @@ json
     }
 }
 
-    user:Create an express application 
    
     </example>
-
-
     
        <example>
 

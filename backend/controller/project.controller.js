@@ -89,3 +89,43 @@ export const showProjectById = async (req, res) => {
         return res.status(500).json({ e: "Internal server error" });
     }
 };
+
+export const updateFileTree = async (req, res) => {
+    const {projectId, fileTree} = req.body; 
+    if(!projectId || !fileTree) {
+        return res.status(400).json({e: "Bad request"});
+    }
+    try {
+        const project = await Project.findOneAndUpdate({
+            _id: projectId
+        }, {
+            fileTree
+        }, {
+            new: true
+        });
+        if(!project) {
+            return res.status(404).json({e: "Project not found"});
+        }
+        return res.status(200).json({m: "File tree updated", o: project});
+
+}
+    catch(err) {
+        console.error(err);
+        return res.status(500).json({e: "Internal server error"});
+    }
+};
+
+export const updateMessages=async (req,res) => {
+    const {message,projectId}=req.body
+    if(!message || !projectId){
+        return res.status(400).json({e:"all fields are required"})
+    }
+    const messages=await Project.findOneAndUpdate(
+        {_id:projectId},
+        {
+            messages:message
+        },
+        {new:true}
+    )
+    return res.status(200).json({m:"updated",o:messages})
+}

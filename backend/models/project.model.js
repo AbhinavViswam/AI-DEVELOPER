@@ -21,6 +21,19 @@ const projectSchema = new mongoose.Schema({
     userEmail:{
         type:String,
     }
+}],
+fileTree:{
+    type:Object,
+    default:{}
+},
+messages:[{
+    message:{
+        type:String
+    },
+    sender:{
+        type:Object,
+        default:{}
+    }
 }]
 })
 

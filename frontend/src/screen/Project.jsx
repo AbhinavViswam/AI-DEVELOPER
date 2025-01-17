@@ -17,10 +17,12 @@ function Project() {
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]);
     const [fileTree, setFileTree] = useState({});
-    const [currentFile, setCurrentFile] = useState(null);
+    const [currentFile, setCurrentFile] = useState("newFile");
     const [openFiles, setOpenFiles] = useState(new Set());
     const [error, setError] = useState(null);
+    const [showError, setShowError] = useState(false);
     const messageBox = useRef(null);
+    const [newFileName, setNewFileName] = useState("");
 
     const { user } = useContext(UserContext);
 
@@ -28,10 +30,28 @@ function Project() {
         setIsModalOpen(true);
     };
 
+    const closeErrorModal = () => {
+        setShowError(false);
+        setError(null);
+    };
+
+    async function saveFileTree(ft) {
+        try {
+            const res = await axios.put("/project/updatefiletree", {
+                projectId: location.state.project._id,
+                fileTree: ft
+            });
+            
+        } catch (err) {
+            setError("Failed to save file tree.");
+            setShowError(true);
+            console.error(err);
+        }
+    }
+
     function WriteAiMessage({ message }) {
         try {
-            const messageObject = JSON.parse(message);
-            console.log("parsed", messageObject);
+            const messageObject = JSON.parse(message);       
             return (
                 <div className='overflow-auto p-2'>
                     <Markdown children={messageObject.text} />
@@ -39,9 +59,33 @@ function Project() {
             );
         } catch (err) {
             setError("Failed to parse AI message.");
+            setShowError(true);
             console.error(err);
             return <div className='text-red-500'>Error parsing AI message.</div>;
         }
+    }
+
+    const fetchFileTree = async () => {
+        try {
+            const res = await axios.get(`/project/showmyproject/${location.state.project._id}`);
+            const fileTreee = res.data.o.fileTree;
+            setFileTree(fileTreee);
+        } catch (err) {
+            setError("Failed to fetch file tree.");
+            setShowError(true);
+            console.error(err);
+        }
+    };
+
+    useEffect(() => {
+        fetchFileTree();
+    }, []);
+
+    const updateMessages=async(msgs)=>{
+        const res=await axios.put("/project/updatemessages",{
+            projectId: location.state.project._id,
+            message:msgs
+        })
     }
 
     const showCollaborators = async () => {
@@ -51,6 +95,7 @@ function Project() {
             setUsers(res.data.o.users);
         } catch (err) {
             setError("Failed to load collaborators.");
+            setShowError(true);
             console.error(err);
         }
     };
@@ -65,6 +110,7 @@ function Project() {
             await showCollaborators();
         } catch (err) {
             setError("Failed to add collaborator.");
+            setShowError(true);
             console.error(err);
         }
     };
@@ -75,11 +121,13 @@ function Project() {
                 message,
                 sender: user
             };
+            
             sendMessage("project-message", newMessage);
             appendOutgoingMessages(newMessage);
             setMessage("");
         } catch (err) {
             setError("Failed to send message.");
+            setShowError(true);
             console.error(err);
         }
     }
@@ -92,6 +140,7 @@ function Project() {
                 setIsLoading(false);
             } catch (err) {
                 setError("Failed to load collaborators.");
+                setShowError(true);
                 setIsLoading(false);
                 console.error(err);
             }
@@ -115,6 +164,7 @@ function Project() {
             });
         } catch (err) {
             setError("Failed to initialize socket.");
+            setShowError(true);
             console.error(err);
         }
     }, []);
@@ -125,11 +175,14 @@ function Project() {
 
     function appendIncomingMessages(messageObject) {
         setMessages((prevMessages) => [...prevMessages, messageObject]);
+        updateMessages(messageObject)
+        console.log(messages)
         scrolltoBottom();
     }
 
     function appendOutgoingMessages(messageObject) {
         setMessages((prevMessages) => [...prevMessages, messageObject]);
+        updateMessages(messageObject)
         scrolltoBottom();
     }
 
@@ -142,9 +195,70 @@ function Project() {
         setCurrentFile((prevCurrentFile) => (prevCurrentFile === file ? null : prevCurrentFile));
     };
 
+    const addFileToTree = () => {
+        if (newFileName.trim() === "") {
+            setError("File name cannot be empty.");
+            setShowError(true);
+            return;
+        }
+        if (fileTree[newFileName]) {
+            setError("File already exists.");
+            setShowError(true);
+            return;
+        }
+        const updatedFileTree = {
+            ...fileTree,
+            [newFileName]: {
+                file: {
+                    contents: ""
+                }
+            }
+        };
+        setFileTree(updatedFileTree);
+        saveFileTree(updatedFileTree);
+        setNewFileName("");
+    };
+
+    const updateFileContents = (file, contents) => {
+        const updatedFileTree = {
+            ...fileTree,
+            [file]: {
+                ...fileTree[file],
+                file: {
+                    ...fileTree[file]?.file,
+                    contents,
+                },
+            },
+        };
+        setFileTree(updatedFileTree);
+        saveFileTree(updatedFileTree);
+    };
+
+    const deleteFileFromTree = (fileName) => {
+        const updatedFileTree = { ...fileTree };
+        delete updatedFileTree[fileName];
+        setFileTree(updatedFileTree);
+        saveFileTree(updatedFileTree);
+        if (currentFile === fileName) {
+            setCurrentFile(null);
+        }
+        setOpenFiles((prevOpenFiles) => {
+            const newOpenFiles = new Set(prevOpenFiles);
+            newOpenFiles.delete(fileName);
+            return newOpenFiles;
+        });
+    };
+
     return (
         <div className='flex w-screen h-screen'>
-            {error && <div className="error-message bg-red-500 text-white p-2">{error}</div>}
+            {showError && (
+                <div className="fixed top-4 right-4 bg-red-500 text-white p-4 rounded shadow-lg">
+                    <div className="flex justify-between items-center">
+                        <span>{error}</span>
+                        <button onClick={closeErrorModal} className="ml-4 text-lg font-bold">&times;</button>
+                    </div>
+                </div>
+            )}
             <section className='h-screen min-w-96 bg-gray-900'>
                 <div className='min-h-16 w-96 bg-gray-900 relative'>
                     <h1 className='text-2xl text-white p-2'>{location.state.project.name}</h1>
@@ -181,49 +295,53 @@ function Project() {
             <section className='right w-screen h-screen bg-gray-800 flex flex-grow'>
                 <div className="file-tree flex flex-col min-w-60 max-w-60 h-screen overflow-y-auto bg-gray-600">
                     {Object.keys(fileTree).map((file) => (
-                        <button className='bg-gray-950 min-h-10 border-b border-b-white text-sm text-white' key={file} onClick={() => {
-                            setCurrentFile(file);
-                            setOpenFiles(new Set([...openFiles, file]));
-                        }}>{file}</button>
-                    ))}
-                </div>
-               
-                    <div className="code-editor flex-grow flex flex-col">
-                        <div className='top flex justify-between'>
-                            <div className="files flex">
-                            {
-                                Array.from(openFiles).map((file, i) => (
-                                    <div key={i} className="code-editor-header border-r border-r-white max-w-max flex justify-between items-center p-2 bg-gray-900">
-                                        <button className='text-sm font-semibold text-white' onClick={() => setCurrentFile(file)}>{file}</button>
-                                        <button onClick={() => closeFile(file)} className='p-2 text-white'>
-                                            <IoIosClose />
-                                        </button>
-                                    </div>
-                                ))
-                            }
-                            </div>
+                        <div key={file} className="flex justify-between items-center bg-gray-950 min-h-10 border-b border-b-white text-sm text-white">
+                            <button className='flex-grow text-left p-2' onClick={() => {
+                                setCurrentFile(file);
+                                setOpenFiles(new Set([...openFiles, file]));
+                            }}>{file}</button>
+                            <button className='p-2 text-red-500' onClick={() => deleteFileFromTree(file)}>
+                                <IoIosClose />
+                            </button>
                         </div>
-                        <textarea
-    className="w-full h-full p-2 border-2 border-gray-700 bg-gray-800 text-white rounded-md focus:outline-none"
-    value={fileTree[currentFile]?.file?.contents || ''}
-    onChange={(e) =>
-        setFileTree({
-            ...fileTree,
-            [currentFile]: {
-                ...fileTree[currentFile],
-                file: {
-                    ...fileTree[currentFile]?.file,
-                    contents: e.target.value,
-                },
-            },
-        })
-    }
-/>
-
+                    ))}
+                    <div className="p-2">
+                        <input
+                            type="text"
+                            value={newFileName}
+                            onChange={(e) => setNewFileName(e.target.value)}
+                            className='p-2 border-2 border-gray-700 bg-gray-800 text-white rounded-md w-full'
+                            placeholder='New file name'
+                        />
+                        <button
+                            onClick={addFileToTree}
+                            className='mt-2 w-full bg-gray-700 text-white p-2 rounded-md'
+                        >
+                            Add File
+                        </button>
                     </div>
-
-                   
-                
+                </div>
+                <div className="code-editor flex-grow flex flex-col">
+                    <div className='top flex justify-between'>
+                        <div className="files flex">
+                        {
+                            Array.from(openFiles).map((file, i) => (
+                                <div key={i} className="code-editor-header border-r border-r-white max-w-max flex justify-between items-center p-2 bg-gray-900">
+                                    <button className='text-sm font-semibold text-white' onClick={() => setCurrentFile(file)}>{file}</button>
+                                    <button onClick={() => closeFile(file)} className='p-2 text-white'>
+                                        <IoIosClose />
+                                    </button>
+                                </div>
+                            ))
+                        }
+                        </div>
+                    </div>
+                    <textarea
+                        className="w-full h-full p-2 border-2 border-gray-700 bg-gray-800 text-white rounded-md focus:outline-none"
+                        value={fileTree[currentFile]?.file?.contents || ''}
+                        onChange={(e) => updateFileContents(currentFile, e.target.value)}
+                    />
+                </div>
             </section>
 
             {isModalOpen && (
