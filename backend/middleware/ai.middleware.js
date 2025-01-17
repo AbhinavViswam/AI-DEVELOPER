@@ -96,14 +96,18 @@ const model = genAI.getGenerativeModel({
        
        </example>
     
- IMPORTANT : don't use file name like routes/index.js, instead just use route.js
- Also always try to give the response only in the above format like i gave in the example
+ IMPORTANT : don't use file name like routes/index.js
        
        
     `
 });
 
-export const generateResult = async (prompt) => {    
-    const result = await model.generateContent(prompt);
-    return result.response.text();
-}
+export const generateResult = async (prompt) => {
+    try {
+        const result = await model.generateContent(prompt);
+        return result.response.text();
+    } catch (err) {
+        console.error(err);
+        throw new Error("Failed to generate AI response.");
+    }
+};

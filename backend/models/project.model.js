@@ -4,10 +4,15 @@ const projectSchema = new mongoose.Schema({
     name:{
         type:String
     },
-    owner:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"User"
-    },
+    owner:[{
+        ownerid: {
+         type:mongoose.Schema.Types.ObjectId,
+         ref:"User"
+     },
+     ownerEmail:{
+         type:String,
+     }
+ }],
     users:[{
        userid: {
         type:mongoose.Schema.Types.ObjectId,

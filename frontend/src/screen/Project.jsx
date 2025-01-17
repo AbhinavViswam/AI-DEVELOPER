@@ -7,8 +7,6 @@ import { inititializeSocket, sendMessage, recieveMessage } from '../config/socke
 import { UserContext } from '../context/UserContext';
 import Markdown from 'markdown-to-jsx';
 
-
-
 function Project() {
     const location = useLocation();
     const [partner, setPartner] = useState("");
@@ -21,6 +19,7 @@ function Project() {
     const [fileTree, setFileTree] = useState({});
     const [currentFile, setCurrentFile] = useState(null);
     const [openFiles, setOpenFiles] = useState(new Set());
+    const [error, setError] = useState(null);
     const messageBox = useRef(null);
 
     const { user } = useContext(UserContext);
@@ -30,69 +29,94 @@ function Project() {
     };
 
     function WriteAiMessage({ message }) {
-        const messageObject = JSON.parse(message);
-        console.log("parsed",messageObject.fileTree);
-        return (
-            <div className='overflow-auto p-2'>
-                <Markdown
-                    children={messageObject.text}
-                />
-            </div>
-        );
+        try {
+            const messageObject = JSON.parse(message);
+            console.log("parsed", messageObject);
+            return (
+                <div className='overflow-auto p-2'>
+                    <Markdown children={messageObject.text} />
+                </div>
+            );
+        } catch (err) {
+            setError("Failed to parse AI message.");
+            console.error(err);
+            return <div className='text-red-500'>Error parsing AI message.</div>;
+        }
     }
 
     const showCollaborators = async () => {
-        const res = await axios.get(`/project/showmyproject/${location.state.project._id}`);
-        setOwner(res.data.o.owner);
-        setUsers(res.data.o.users);
-        console.log(users);
+        try {
+            const res = await axios.get(`/project/showmyproject/${location.state.project._id}`);
+            setOwner(res.data.o.owner[0].ownerEmail);
+            setUsers(res.data.o.users);
+        } catch (err) {
+            setError("Failed to load collaborators.");
+            console.error(err);
+        }
     };
 
     const addCollab = async (e) => {
         e.preventDefault();
-        await axios.put(`/project/addpartner/${location.state.project._id}`, {
-            partnerEmail: partner
-        });
-        setPartner("");
-        await showCollaborators();
+        try {
+            await axios.put(`/project/addpartner/${location.state.project._id}`, {
+                partnerEmail: partner
+            });
+            setPartner("");
+            await showCollaborators();
+        } catch (err) {
+            setError("Failed to add collaborator.");
+            console.error(err);
+        }
     };
 
     function send() {
-        const newMessage = {
-            message,
-            sender: user
-        };
-        sendMessage("project-message", newMessage);
-        appendOutgoingMessages(newMessage);
-        setMessage("");
+        try {
+            const newMessage = {
+                message,
+                sender: user
+            };
+            sendMessage("project-message", newMessage);
+            appendOutgoingMessages(newMessage);
+            setMessage("");
+        } catch (err) {
+            setError("Failed to send message.");
+            console.error(err);
+        }
     }
 
     useEffect(() => {
         async function loadCollabs() {
-            setIsLoading(true);
-            await showCollaborators();
-            setIsLoading(false);
+            try {
+                setIsLoading(true);
+                await showCollaborators();
+                setIsLoading(false);
+            } catch (err) {
+                setError("Failed to load collaborators.");
+                setIsLoading(false);
+                console.error(err);
+            }
         }
         loadCollabs();
     }, []);
 
     useEffect(() => {
-        inititializeSocket(location.state.project._id);
-
-
-        recieveMessage('project-message', (data) => {
-            try{
-            const message=JSON.parse(data.message);
-            console.log(message)
-            if(message.fileTree){
-                setFileTree(message.fileTree);
-                return
-            }
-         
-        }catch(e){  
-            appendIncomingMessages(data);
+        try {
+            inititializeSocket(location.state.project._id);
+            recieveMessage('project-message', (data) => {
+                try {
+                    const message = JSON.parse(data.message);
+                    appendIncomingMessages(data);
+                    if (message.fileTree) {
+                        setFileTree(message.fileTree);
+                    }
+                } catch (e) {
+                    appendIncomingMessages(data);
+                }
+            });
+        } catch (err) {
+            setError("Failed to initialize socket.");
+            console.error(err);
         }
-        });
     }, []);
 
     function scrolltoBottom() {
@@ -120,6 +144,7 @@ function Project() {
 
     return (
         <div className='flex w-screen h-screen'>
+            {error && <div className="error-message bg-red-500 text-white p-2">{error}</div>}
             <section className='h-screen min-w-96 bg-gray-900'>
                 <div className='min-h-16 w-96 bg-gray-900 relative'>
                     <h1 className='text-2xl text-white p-2'>{location.state.project.name}</h1>
@@ -222,7 +247,7 @@ function Project() {
                                         Close
                                     </button>
                                 </div>
-                                <h1 className='text-white'>Owner:{JSON.stringify(owner)}</h1>
+                                <h1 className='text-white'>Owner:{owner}</h1>
                                 <ul>
                                     {users.map((user, i) => (
                                         <li

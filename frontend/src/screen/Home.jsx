@@ -20,9 +20,9 @@ function Home() {
     fetchProjects();
   }, []);
 
-  const fetchProjects = () => {
+  const fetchProjects = async() => {
     setLoading(true);
-    axios.get("/project")
+    await axios.get("/project")
       .then((res) => setProjects(res.data.o))
       .finally(() => setLoading(false));
   };
