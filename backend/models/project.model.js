@@ -25,16 +25,7 @@ const projectSchema = new mongoose.Schema({
 fileTree:{
     type:Object,
     default:{}
-},
-messages:[{
-    message:{
-        type:String
-    },
-    sender:{
-        type:Object,
-        default:{}
-    }
-}]
+}
 })
 
 const Project = mongoose.model("Project",projectSchema);

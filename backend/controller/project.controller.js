@@ -114,18 +114,3 @@ export const updateFileTree = async (req, res) => {
         return res.status(500).json({e: "Internal server error"});
     }
 };
-
-export const updateMessages=async (req,res) => {
-    const {message,projectId}=req.body
-    if(!message || !projectId){
-        return res.status(400).json({e:"all fields are required"})
-    }
-    const messages=await Project.findOneAndUpdate(
-        {_id:projectId},
-        {
-            messages:message
-        },
-        {new:true}
-    )
-    return res.status(200).json({m:"updated",o:messages})
-}

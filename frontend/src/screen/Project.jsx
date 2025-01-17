@@ -68,7 +68,7 @@ function Project() {
     const fetchFileTree = async () => {
         try {
             const res = await axios.get(`/project/showmyproject/${location.state.project._id}`);
-            const fileTreee = res.data.o.fileTree;
+            const fileTreee = res.data.o.fileTree || {};
             setFileTree(fileTreee);
         } catch (err) {
             setError("Failed to fetch file tree.");
@@ -80,13 +80,6 @@ function Project() {
     useEffect(() => {
         fetchFileTree();
     }, []);
-
-    const updateMessages=async(msgs)=>{
-        const res=await axios.put("/project/updatemessages",{
-            projectId: location.state.project._id,
-            message:msgs
-        })
-    }
 
     const showCollaborators = async () => {
         try {
@@ -121,7 +114,6 @@ function Project() {
                 message,
                 sender: user
             };
-            
             sendMessage("project-message", newMessage);
             appendOutgoingMessages(newMessage);
             setMessage("");
@@ -175,14 +167,11 @@ function Project() {
 
     function appendIncomingMessages(messageObject) {
         setMessages((prevMessages) => [...prevMessages, messageObject]);
-        updateMessages(messageObject)
-        console.log(messages)
         scrolltoBottom();
     }
 
     function appendOutgoingMessages(messageObject) {
         setMessages((prevMessages) => [...prevMessages, messageObject]);
-        updateMessages(messageObject)
         scrolltoBottom();
     }
 
@@ -294,7 +283,7 @@ function Project() {
 
             <section className='right w-screen h-screen bg-gray-800 flex flex-grow'>
                 <div className="file-tree flex flex-col min-w-60 max-w-60 h-screen overflow-y-auto bg-gray-600">
-                    {Object.keys(fileTree).map((file) => (
+                    {Object.keys(fileTree || {}) .map((file) => (
                         <div key={file} className="flex justify-between items-center bg-gray-950 min-h-10 border-b border-b-white text-sm text-white">
                             <button className='flex-grow text-left p-2' onClick={() => {
                                 setCurrentFile(file);
