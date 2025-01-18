@@ -26,44 +26,25 @@ function Project() {
 
     const { user } = useContext(UserContext);
 
-    const openModal = () => {
-        setIsModalOpen(true);
-    };
+    const openModal = () => setIsModalOpen(true);
 
     const closeErrorModal = () => {
         setShowError(false);
         setError(null);
     };
 
-    async function saveFileTree(ft) {
+    const saveFileTree = async (ft) => {
         try {
-            const res = await axios.put("/project/updatefiletree", {
+            await axios.put("/project/updatefiletree", {
                 projectId: location.state.project._id,
-                fileTree: ft
+                fileTree: ft,
             });
-            
         } catch (err) {
             setError("Failed to save file tree.");
             setShowError(true);
             console.error(err);
         }
-    }
-
-    function WriteAiMessage({ message }) {
-        try {
-            const messageObject = JSON.parse(message);       
-            return (
-                <div className='overflow-auto p-2'>
-                    <Markdown children={messageObject.text} />
-                </div>
-            );
-        } catch (err) {
-            setError("Failed to parse AI message.");
-            setShowError(true);
-            console.error(err);
-            return <div className='text-red-500'>Error parsing AI message.</div>;
-        }
-    }
+    };
 
     const fetchFileTree = async () => {
         try {
@@ -93,11 +74,34 @@ function Project() {
         }
     };
 
+    useEffect(() => {
+        showCollaborators();
+    }, []);
+
+    useEffect(() => {
+        inititializeSocket(location.state.project._id);
+
+        recieveMessage('project-message', (data) => {
+            try {
+                const message = JSON.parse(data.message);
+                appendIncomingMessages(data);
+                if (message.fileTree) {
+                    setFileTree(message.fileTree);
+                }
+            } catch (e) {
+                appendIncomingMessages(data);
+            }
+        });
+
+        return () => {
+        };
+    }, []);
+
     const addCollab = async (e) => {
         e.preventDefault();
         try {
             await axios.put(`/project/addpartner/${location.state.project._id}`, {
-                partnerEmail: partner
+                partnerEmail: partner,
             });
             setPartner("");
             await showCollaborators();
@@ -108,11 +112,11 @@ function Project() {
         }
     };
 
-    function send() {
+    const send = () => {
         try {
             const newMessage = {
                 message,
-                sender: user
+                sender: user,
             };
             sendMessage("project-message", newMessage);
             appendOutgoingMessages(newMessage);
@@ -122,58 +126,21 @@ function Project() {
             setShowError(true);
             console.error(err);
         }
-    }
+    };
 
-    useEffect(() => {
-        async function loadCollabs() {
-            try {
-                setIsLoading(true);
-                await showCollaborators();
-                setIsLoading(false);
-            } catch (err) {
-                setError("Failed to load collaborators.");
-                setShowError(true);
-                setIsLoading(false);
-                console.error(err);
-            }
-        }
-        loadCollabs();
-    }, []);
-
-    useEffect(() => {
-        try {
-            inititializeSocket(location.state.project._id);
-            recieveMessage('project-message', (data) => {
-                try {
-                    const message = JSON.parse(data.message);
-                    appendIncomingMessages(data);
-                    if (message.fileTree) {
-                        setFileTree(message.fileTree);
-                    }
-                } catch (e) {
-                    appendIncomingMessages(data);
-                }
-            });
-        } catch (err) {
-            setError("Failed to initialize socket.");
-            setShowError(true);
-            console.error(err);
-        }
-    }, []);
-
-    function scrolltoBottom() {
+    const scrolltoBottom = () => {
         messageBox.current.scrollTop = messageBox.current.scrollHeight;
-    }
+    };
 
-    function appendIncomingMessages(messageObject) {
+    const appendIncomingMessages = (messageObject) => {
         setMessages((prevMessages) => [...prevMessages, messageObject]);
         scrolltoBottom();
-    }
+    };
 
-    function appendOutgoingMessages(messageObject) {
+    const appendOutgoingMessages = (messageObject) => {
         setMessages((prevMessages) => [...prevMessages, messageObject]);
         scrolltoBottom();
-    }
+    };
 
     const closeFile = (file) => {
         setOpenFiles((prevOpenFiles) => {
@@ -199,9 +166,9 @@ function Project() {
             ...fileTree,
             [newFileName]: {
                 file: {
-                    contents: ""
-                }
-            }
+                    contents: "",
+                },
+            },
         };
         setFileTree(updatedFileTree);
         saveFileTree(updatedFileTree);
@@ -237,6 +204,7 @@ function Project() {
             return newOpenFiles;
         });
     };
+
 
     return (
         <div className='flex w-screen h-screen'>

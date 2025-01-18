@@ -8,14 +8,15 @@ import DB_CONNECT from "./db/db.js";
 import Project from "./models/project.model.js";
 import { generateResult } from "./middleware/ai.middleware.js";
 
-
 dotenv.config();
 DB_CONNECT()
 
 const server=http.createServer(app)
 const io = new Server(server,{
     cors:{
-        origin:"*"
+        origin: "http://localhost:3001",
+        methods: ["GET", "POST", "PUT", "DELETE"], 
+        credentials: true,
     }
 });
 
