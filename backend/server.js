@@ -14,7 +14,7 @@ DB_CONNECT()
 const server=http.createServer(app)
 const io = new Server(server,{
     cors:{
-        origin: "https://ai-developer-ijyk.onrender.com",
+        origin: "*",
     }
 });
 
