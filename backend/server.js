@@ -15,8 +15,6 @@ const server=http.createServer(app)
 const io = new Server(server,{
     cors:{
         origin: "https://ai-developer-ijyk.onrender.com",
-        methods: ["GET", "POST", "PUT", "DELETE"], 
-        credentials: true,
     }
 });
 
