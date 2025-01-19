@@ -34,6 +34,7 @@ function Project() {
     };
 
     const saveFileTree = async (ft) => {
+        setIsLoading(true);
         try {
             await axios.put("/project/updatefiletree", {
                 projectId: location.state.project._id,
@@ -43,10 +44,13 @@ function Project() {
             setError("Failed to save file tree.");
             setShowError(true);
             console.error(err);
+        } finally {
+            setIsLoading(false);
         }
     };
 
     const fetchFileTree = async () => {
+        setIsLoading(true);
         try {
             const res = await axios.get(`/project/showmyproject/${location.state.project._id}`);
             const fileTreee = res.data.o.fileTree || {};
@@ -55,6 +59,8 @@ function Project() {
             setError("Failed to fetch file tree.");
             setShowError(true);
             console.error(err);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -63,6 +69,7 @@ function Project() {
     }, []);
 
     const showCollaborators = async () => {
+        setIsLoading(true);
         try {
             const res = await axios.get(`/project/showmyproject/${location.state.project._id}`);
             setOwner(res.data.o.owner[0].ownerEmail);
@@ -71,6 +78,8 @@ function Project() {
             setError("Failed to load collaborators.");
             setShowError(true);
             console.error(err);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -99,6 +108,7 @@ function Project() {
 
     const addCollab = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
         try {
             await axios.put(`/project/addpartner/${location.state.project._id}`, {
                 partnerEmail: partner,
@@ -109,6 +119,8 @@ function Project() {
             setError("Failed to add collaborator.");
             setShowError(true);
             console.error(err);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -208,14 +220,19 @@ function Project() {
 
     return (
         <div className='flex w-screen h-screen'>
-            {showError && (
-                <div className="fixed top-4 right-4 bg-red-500 text-white p-4 rounded shadow-lg">
-                    <div className="flex justify-between items-center">
-                        <span>{error}</span>
-                        <button onClick={closeErrorModal} className="ml-4 text-lg font-bold">&times;</button>
-                    </div>
+        {isLoading && (
+            <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75 z-50">
+                <div className="loader">Loading...</div>
+            </div>
+        )}
+        {showError && (
+            <div className="fixed top-4 right-4 bg-red-500 text-white p-4 rounded shadow-lg">
+                <div className="flex justify-between items-center">
+                    <span>{error}</span>
+                    <button onClick={closeErrorModal} className="ml-4 text-lg font-bold">&times;</button>
                 </div>
-            )}
+            </div>
+        )}
             <section className='h-screen min-w-96 bg-gray-900'>
                 <div className='min-h-16 w-96 bg-gray-900 relative'>
                     <h1 className='text-2xl text-white p-2'>{location.state.project.name}</h1>
