@@ -48,7 +48,13 @@ function Project() {
             setIsLoading(false);
         }
     };
-
+    useEffect(() => {
+        if (!location.state?.project) {
+            setError("no project data found");
+            setShowError(true);
+        }
+    }, [location.state]);
+    
     const fetchFileTree = async () => {
         setIsLoading(true);
         try {
@@ -88,7 +94,7 @@ function Project() {
     }, []);
 
     useEffect(() => {
-        inititializeSocket(location.state.project._id);
+        const socket = inititializeSocket(location.state.project._id);
 
         recieveMessage('project-message', (data) => {
             try {
@@ -101,8 +107,8 @@ function Project() {
                 appendIncomingMessages(data);
             }
         });
-
         return () => {
+            socket.disconnect();
         };
     }, []);
 
@@ -187,20 +193,19 @@ function Project() {
         setNewFileName("");
     };
 
-    const updateFileContents = (file, contents) => {
-        const updatedFileTree = {
-            ...fileTree,
-            [file]: {
-                ...fileTree[file],
-                file: {
-                    ...fileTree[file]?.file,
-                    contents,
-                },
-            },
-        };
-        setFileTree(updatedFileTree);
-        saveFileTree(updatedFileTree);
+  const updateFileContents = (file, contents) => {
+    const updatedFileTree = JSON.parse(JSON.stringify(fileTree));
+    updatedFileTree[file] = {
+        ...updatedFileTree[file],
+        file: {
+            ...updatedFileTree[file]?.file,
+            contents,
+        },
     };
+    setFileTree(updatedFileTree);
+    saveFileTree(updatedFileTree);
+};
+
 
     const deleteFileFromTree = (fileName) => {
         const updatedFileTree = { ...fileTree };
@@ -311,10 +316,12 @@ function Project() {
                         </div>
                     </div>
                     <textarea
-                        className="w-full h-full p-2 border-2 border-gray-700 bg-gray-800 text-white rounded-md focus:outline-none"
-                        value={fileTree[currentFile]?.file?.contents || ''}
-                        onChange={(e) => updateFileContents(currentFile, e.target.value)}
-                    />
+    className="w-full h-full p-2 border-2 border-gray-700 bg-gray-800 text-white rounded-md focus:outline-none"
+    value={fileTree[currentFile]?.file?.contents || ''}
+    onChange={(e) => updateFileContents(currentFile, e.target.value)}
+    placeholder="Select or create a file to edit"
+/>
+
                 </div>
             </section>
 
