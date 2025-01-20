@@ -32,6 +32,23 @@ function Project() {
         setShowError(false);
         setError(null);
     };
+    function WriteAiMessage({ message }) {
+        try {
+            const messageObject = JSON.parse(message);       
+            return (
+                <div className='overflow-auto p-2'>
+                    <Markdown children={messageObject.text} />
+                </div>
+            );
+        } catch (err) {
+            setError("Failed to parse AI message.");
+            setShowError(true);
+            console.error(err);
+            return <div className='text-red-500'>Error parsing AI message.</div>;
+        }
+    }
+
+
 
     const saveFileTree = async (ft) => {
         setIsLoading(true);
