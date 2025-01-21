@@ -51,7 +51,6 @@ function Project() {
 
 
     const saveFileTree = async (ft) => {
-        setIsLoading(true);
         try {
             await axios.put("/project/updatefiletree", {
                 projectId: location.state.project._id,
@@ -61,16 +60,15 @@ function Project() {
             setError("Failed to save file tree.");
             setShowError(true);
             console.error(err);
-        } finally {
-            setIsLoading(false);
         }
+       
     };
     useEffect(() => {
         if (!location.state?.project) {
             setError("no project data found");
             setShowError(true);
         }
-    }, [location.state]);
+    }, []);
     
     const fetchFileTree = async () => {
         setIsLoading(true);

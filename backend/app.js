@@ -17,4 +17,9 @@ app.use('/users',userRoute)
 app.use("/project",projectRoute)
 app.use("/ai",aiRoute)
 
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
+  });
+  
+
 export default app
