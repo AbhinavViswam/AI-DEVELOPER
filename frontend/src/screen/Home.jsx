@@ -51,52 +51,50 @@ function Home() {
   };
 
   return (
-    <div className="p-6 bg-gradient-to-b from-blue-50 to-blue-100 min-h-screen">
-      <header className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-blue-700">
+    <div className="p-4 bg-gray-100 min-h-screen">
+      {/* Header */}
+      <header className="flex justify-between items-center py-4">
+        <h1 className="text-lg font-bold text-gray-800">
           Welcome, {user?.email || "User"}
         </h1>
         <button
           onClick={() => setIsModal(true)}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition"
+          className="bg-blue-500 text-white text-sm px-4 py-2 rounded-md shadow-md hover:bg-blue-600"
         >
           New Project
         </button>
       </header>
 
+      {/* Error Message */}
       {error && (
-        <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-lg mb-4">
+        <div className="bg-red-100 text-red-700 p-2 rounded-md my-2">
           {error}
         </div>
       )}
 
+      {/* Projects Section */}
       <section>
-        <h2 className="text-xl font-semibold text-gray-700 mb-4">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">
           Your Projects
         </h2>
 
         {loading ? (
-          <div className="flex justify-center items-center">
-            <div className="loader w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          </div>
+          <div className="text-center text-gray-600">Loading...</div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
             {projects.map((project, index) => (
               <button
-                onClick={() =>
-                  navigate("/project", { state: { project } })
-                }
                 key={index}
+                onClick={() => navigate("/project", { state: { project } })}
+                className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition duration-300"
               >
-                <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition transform hover:scale-105 flex justify-between items-center">
-                  <h3 className="text-lg font-bold text-gray-800">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-700">
                     {project.name}
                   </h3>
-                  <div className="flex items-center gap-2">
-                    <FaUser className="text-blue-600" />
-                    <span className="text-gray-600">
-                      {project.users.length}
-                    </span>
+                  <div className="flex items-center mt-2 text-blue-500">
+                    <FaUser className="mr-2" />
+                    <span>{project.users.length}</span>
                   </div>
                 </div>
               </button>
@@ -105,31 +103,32 @@ function Home() {
         )}
       </section>
 
+      {/* Modal */}
       {isModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-lg shadow-lg w-96">
-            <h2 className="text-2xl font-semibold mb-6 text-blue-700">
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-sm">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">
               Create New Project
             </h2>
-            <form onSubmit={createProject} className="space-y-6">
+            <form onSubmit={createProject} className="space-y-4">
               <input
                 type="text"
                 placeholder="Enter project name"
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <div className="flex justify-end gap-4">
+              <div className="flex justify-end space-x-2">
                 <button
                   type="button"
                   onClick={() => setIsModal(false)}
-                  className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
+                  className="px-4 py-2 text-gray-700 border rounded-md hover:bg-gray-100"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600"
                 >
                   Create
                 </button>

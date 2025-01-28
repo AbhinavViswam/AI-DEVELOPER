@@ -2,6 +2,8 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { FaUsers } from "react-icons/fa";
 import { IoIosClose } from "react-icons/io";
+import { MdOutlineMessage } from "react-icons/md";
+import { MdDeleteForever } from "react-icons/md";
 import axios from "../config/axios";
 import { inititializeSocket, sendMessage, recieveMessage } from '../config/socket';
 import { UserContext } from '../context/UserContext';
@@ -9,6 +11,7 @@ import Markdown from 'markdown-to-jsx';
 
 function Project() {
     const location = useLocation();
+    const [messageBar, setMessageBar]=useState(false)
     const [partner, setPartner] = useState("");
     const [owner, setOwner] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,8 +50,6 @@ function Project() {
             return <div className='text-red-500'>Error parsing AI message.</div>;
         }
     }
-
-
 
     const saveFileTree = async (ft) => {
         try {
@@ -239,145 +240,203 @@ function Project() {
 
 
     return (
-        <div className='flex w-screen h-screen'>
+      <div className="flex flex-col lg:flex-row h-screen">
+        {/* Loading and Error Modals */}
         {isLoading && (
-            <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75 z-50">
-                <div className="loader">Loading...</div>
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg">
+              <div>Loading...</div>
             </div>
+          </div>
         )}
         {showError && (
-            <div className="fixed top-4 right-4 bg-red-500 text-white p-4 rounded shadow-lg">
-                <div className="flex justify-between items-center">
-                    <span>{error}</span>
-                    <button onClick={closeErrorModal} className="ml-4 text-lg font-bold">&times;</button>
-                </div>
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+            <div className="bg-white p-4 rounded-lg shadow-lg">
+              <div className="flex justify-between items-center">
+                <span className="text-red-600 font-semibold">{error}</span>
+                <button
+                  onClick={closeErrorModal}
+                  className="text-red-500 text-lg hover:text-red-700"
+                >
+                  &times;
+                </button>
+              </div>
             </div>
+          </div>
         )}
-            <section className='h-screen min-w-96 bg-gray-900'>
-                <div className='min-h-16 w-96 bg-gray-900 relative'>
-                    <h1 className='text-2xl text-white p-2'>{location.state.project.name}</h1>
-                    <button
-                        className='absolute right-2 top-2 text-white px-2 py-2 rounded-[50%] bg-gray-700'
-                        onClick={openModal}
-                    >
-                        <FaUsers className='text-2xl' />
-                    </button>
-                </div>
-                <div className='message-box bg-gray-800 min-w-96 max-w-96 flex flex-col py-1 px-2 min-h-[84vh] max-h-[84vh] overflow-y-auto scroll-smooth' ref={messageBox}>
-                    {messages.map((msg, index) => (
-                        <div key={index} className={`max-w-[250px] w-full flex flex-col rounded-xl px-2 py-1 mt-3 ${msg.sender.email === user.email ? 'bg-white text-dark-green ml-auto mr-1' : msg.sender.email === 'AI' ? 'bg-gray-950 text-white max-w-[400px] overflow-x-auto min-h-max' : 'bg-white text-black ml-0'}`}>
-                            <p className={`text-xs opacity-50 ${msg.sender.email === user.email ? 'text-right' : 'text-left'}`}>{msg.sender.email === user.email ? 'You' : msg.sender.email}</p>
-                            {msg.sender.email === 'AI' ? (
-                                <WriteAiMessage message={msg.message} />
-                            ) : (
-                                <Markdown className={`text-sm ${msg.sender.email === user.email ? 'text-right' : 'text-left'}`}>{msg.message}</Markdown>
-                            )}
-                        </div>
-                    ))}
-                </div>
-                <div className="inputField max-w-96 min-w-96 flex absolute bottom-0">
-                    <input
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        className='p-2 px-4 outline-none flex-grow border-2 border-gray-700 bg-gray-800 text-white' type="text" placeholder='Enter a message' />
-                    <button
-                        onClick={send}
-                        className='px-5 bg-gray-700 text-white'>send</button>
-                </div>
-            </section>
-
-            <section className='right w-screen h-screen bg-gray-800 flex flex-grow'>
-                <div className="file-tree flex flex-col min-w-60 max-w-60 h-screen overflow-y-auto bg-gray-600">
-                    {Object.keys(fileTree || {}) .map((file) => (
-                        <div key={file} className="flex justify-between items-center bg-gray-950 min-h-10 border-b border-b-white text-sm text-white">
-                            <button className='flex-grow text-left p-2' onClick={() => {
-                                setCurrentFile(file);
-                                setOpenFiles(new Set([...openFiles, file]));
-                            }}>{file}</button>
-                            <button className='p-2 text-red-500' onClick={() => deleteFileFromTree(file)}>
-                                <IoIosClose />
-                            </button>
-                        </div>
-                    ))}
-                    <div className="p-2">
-                        <input
-                            type="text"
-                            value={newFileName}
-                            onChange={(e) => setNewFileName(e.target.value)}
-                            className='p-2 border-2 border-gray-700 bg-gray-800 text-white rounded-md w-full'
-                            placeholder='New file name'
-                        />
-                        <button
-                            onClick={addFileToTree}
-                            className='mt-2 w-full bg-gray-700 text-white p-2 rounded-md'
-                        >
-                            Add File
-                        </button>
+    
+        {/* Sidebar Section (File Tree and Messages) */}
+        <aside className="lg:w-1/3 bg-gray-50 p-4 overflow-auto flex flex-col gap-4">
+          {/* Project Header */}
+          <section className=" bg-blue-100 rounded-md shadow-lg p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h1 className="font-bold text-lg text-gray-800">{location.state.project.name}</h1>
+              <div className="flex gap-5">
+                <button className="text-lg" onClick={openModal}>
+                  <FaUsers />
+                </button>
+                <button className="text-lg" onClick={() => setMessageBar(true)}>
+                  <MdOutlineMessage />
+                </button>
+              </div>
+            </div>
+    
+            {/* Message Bar */}
+            {messageBar && (
+              <div className="p-4">
+                <div ref={messageBox} className="min-h-[60vh] max-h-[60vh] overflow-auto">
+                  <button
+                    className="min-w-full text-center py-2 bg-red-600 text-white rounded-md"
+                    onClick={() => setMessageBar(false)}
+                  >
+                    Close
+                  </button>
+                  {messages.map((msg, index) => (
+                    <div key={index} className="py-2">
+                      <p className="text-sm font-semibold">
+                        {msg.sender.email === user.email ? "You" : msg.sender.email}
+                      </p>
+                      {msg.sender.email === "AI" ? (
+                        <WriteAiMessage message={msg.message} />
+                      ) : (
+                        <Markdown>{msg.message}</Markdown>
+                      )}
                     </div>
+                  ))}
                 </div>
-                <div className="code-editor flex-grow flex flex-col">
-                    <div className='top flex justify-between'>
-                        <div className="files flex">
-                        {
-                            Array.from(openFiles).map((file, i) => (
-                                <div key={i} className="code-editor-header border-r border-r-white max-w-max flex justify-between items-center p-2 bg-gray-900">
-                                    <button className='text-sm font-semibold text-white' onClick={() => setCurrentFile(file)}>{file}</button>
-                                    <button onClick={() => closeFile(file)} className='p-2 text-white'>
-                                        <IoIosClose />
-                                    </button>
-                                </div>
-                            ))
-                        }
-                        </div>
-                    </div>
-                    <textarea
-    className="w-full h-full p-2 border-2 border-gray-700 bg-gray-800 text-white rounded-md focus:outline-none"
-    value={fileTree[currentFile]?.file?.contents || ''}
-    onChange={(e) => updateFileContents(currentFile, e.target.value)}
-    placeholder="Select or create a file to edit"
-/>
-
+                <div className="flex gap-2 mt-4">
+                  <input
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    type="text"
+                    placeholder="Enter a message"
+                    className="flex-grow border px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    onClick={send}
+                    className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                  >
+                    Send
+                  </button>
                 </div>
-            </section>
-
-            {isModalOpen && (
-                <div className='fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center'>
-                    <div className='bg-gray-900 rounded-lg py-6 px-4 w-3/4 max-w-md max-h-96 overflow-y-auto flex flex-col'>
-                        {isLoading ? (
-                            <div className='flex justify-center items-center h-full'>
-                                <div className='loader'>loading...</div> {/* Add your loader component or CSS here */}
-                            </div>
-                        ) : (
-                            <div>
-                                <div className='flex flex-col justify-center px-4 py-2'>
-                                    <form onSubmit={addCollab} className='flex justify-around'>
-                                        <input type="text" value={partner} onChange={(e) => setPartner(e.target.value)} className='border-2 border-gray-700 bg-gray-800 text-white mt-4 px-4 py-2 rounded outline-none' />
-                                        <button className='mt-4 bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600'>Add Collaborator</button>
-                                    </form>
-                                    <button
-                                        className='mt-4 bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600'
-                                        onClick={() => setIsModalOpen(false)}
-                                    >
-                                        Close
-                                    </button>
-                                </div>
-                                <h1 className='text-white'>Owner:{owner}</h1>
-                                <ul>
-                                    {users.map((user, i) => (
-                                        <li
-                                            key={i}
-                                            className='p-2 border-b border-gray-700 cursor-pointer hover:bg-gray-800'
-                                        >
-                                            <p className='text-sm text-white'>{user.userEmail}</p>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-                    </div>
-                </div>
+              </div>
             )}
-        </div>
+          </section>
+    
+          {/* File Tree */}
+          <section className="bg-blue-50 p-4 flex-grow">
+            <div className=" p-4">
+              <div className="flex gap-2 md:flex md:flex-col">
+                {Object.keys(fileTree || {}).map((file) => (
+                  <div key={file} className="flex items-center justify-between">
+                    <button
+                      onClick={() => {
+                        setCurrentFile(file);
+                        setOpenFiles(new Set([...openFiles, file]));
+                      }}
+                      className="text-blue-500 hover:underline"
+                    >
+                      {file}
+                    </button>
+                    <button
+                      onClick={() => deleteFileFromTree(file)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <MdDeleteForever />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 flex gap-2">
+                <input
+                  type="text"
+                  value={newFileName}
+                  onChange={(e) => setNewFileName(e.target.value)}
+                  placeholder="New file name"
+                  className="flex-grow border px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  onClick={addFileToTree}
+                  className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                >
+                  Add File
+                </button>
+              </div>
+            </div>
+          </section>
+        </aside>
+    
+        {/* Main Section (Code Editor) */}
+        <main className="lg:w-2/3 flex flex-col h-full bg-white p-4">
+          <div className="flex gap-2">
+            {Array.from(openFiles).map((file, i) => (
+              <div key={i} className="flex justify-between">
+                <button
+                  onClick={() => setCurrentFile(file)}
+                  className="text-blue-500 hover:underline"
+                >
+                  {file}
+                </button>
+                <button
+                  onClick={() => closeFile(file)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  <IoIosClose />
+                </button>
+              </div>
+            ))}
+          </div>
+          <textarea
+            value={fileTree[currentFile]?.file?.contents || ""}
+            onChange={(e) => updateFileContents(currentFile, e.target.value)}
+            placeholder="Select or create a file to edit"
+            className="w-full flex-grow border px-4 py-2 rounded-md outline-none shadow-lg"
+          />
+        </main>
+    
+        {/* Modal for Adding Collaborators */}
+        {isModalOpen && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md">
+              {isLoading ? (
+                <div className="text-center">Loading...</div>
+              ) : (
+                <div>
+                  <form onSubmit={addCollab} className="space-y-4">
+                    <input
+                      type="text"
+                      value={partner}
+                      onChange={(e) => setPartner(e.target.value)}
+                      placeholder="Enter collaborator email"
+                      className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                      type="submit"
+                      className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                    >
+                      Add Collaborator
+                    </button>
+                  </form>
+                  <button
+                    onClick={() => setIsModalOpen(false)}
+                    className="mt-4 w-full bg-gray-200 px-4 py-2 rounded-md hover:bg-gray-300"
+                  >
+                    Close
+                  </button>
+                  <h1 className="mt-4 font-bold">Owner: {owner}</h1>
+                  <ul className="mt-2 space-y-2">
+                    {users.map((user, i) => (
+                      <li key={i} className="text-gray-700">
+                        {user.userEmail}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     );
 }
 

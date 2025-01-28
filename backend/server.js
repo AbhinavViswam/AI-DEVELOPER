@@ -12,6 +12,11 @@ dotenv.config();
 DB_CONNECT()
 
 const server=http.createServer(app)
+// const io = new Server(server,{
+//     cors:{
+//         origin: "https://ai-developer-eosin.vercel.app",
+//     }
+// });
 const io = new Server(server,{
     cors:{
         origin: "https://ai-developer-eosin.vercel.app",
