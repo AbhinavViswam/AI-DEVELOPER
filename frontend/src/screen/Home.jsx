@@ -19,6 +19,13 @@ function Home() {
     fetchProjects();
   }, []);
 
+  const logOut =async()=>{
+    await axios.get("/users/logout")
+    localStorage.removeItem("user")
+    localStorage.removeItem("token")
+    navigate("/login")
+  }
+
   const fetchProjects = async () => {
     setLoading(true);
     setError(null);
@@ -57,12 +64,15 @@ function Home() {
         <h1 className="text-lg font-bold text-gray-800">
           Welcome, {user?.email || "User"}
         </h1>
+        <div className="flex flex-col gap-1 md:flex-row">
         <button
           onClick={() => setIsModal(true)}
           className="bg-blue-500 text-white text-sm px-4 py-2 rounded-md shadow-md hover:bg-blue-600"
         >
           New Project
         </button>
+        <button className="bg-red-600 rounded-md p-1 text-white md:px-4" onClick={logOut}>logout</button>
+        </div>
       </header>
 
       {/* Error Message */}

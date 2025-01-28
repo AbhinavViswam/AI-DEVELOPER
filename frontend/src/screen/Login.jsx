@@ -7,6 +7,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { setUser } = useContext(UserContext);
 
@@ -31,7 +32,11 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
-      <div className="bg-gray-800 p-10 rounded-2xl shadow-2xl w-full max-w-md">
+      {
+        loading ? (
+          <div>Loading...</div>
+        ):(
+          <div className="bg-gray-800 p-10 rounded-2xl shadow-2xl w-full max-w-md">
         <h2 className="text-3xl font-extrabold text-white mb-6 text-center tracking-wide">
           Welcome Back
         </h2>
@@ -89,6 +94,8 @@ const Login = () => {
           </Link>
         </p>
       </div>
+        )
+      }
     </div>
   );
 };
