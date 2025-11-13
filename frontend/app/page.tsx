@@ -11,8 +11,6 @@ export default function Home() {
   const checkAuth = async () => {
     try {
       const res = await authCheck();
-      console.log("rrrrrrrrr", res?.data);
-
       if (res?.data?.o) {
         router.push("/main");
       } else {

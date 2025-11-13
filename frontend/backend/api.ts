@@ -107,7 +107,6 @@ export const showMyProject = async (id: any) => {
 };
 
 export const updateFileTree = async (ft: any, id: any) => {
-
   const res = await api.put(`/project/updatefiletree`, {
     projectId: id,
     fileTree: ft,
@@ -116,10 +115,13 @@ export const updateFileTree = async (ft: any, id: any) => {
 };
 
 export const addPartner = async (id: any, partnerEmail: any) => {
-  console.log("updateFilet",id,partnerEmail);
-
   const res = await api.put(`/project/addpartner/${id}`, {
     partnerEmail,
   });
+  return res.data;
+};
+
+export const deleteProject = async (id: any) => {
+  const res = await api.delete(`/project/delete/${id}`);
   return res.data;
 };

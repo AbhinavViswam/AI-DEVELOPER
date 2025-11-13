@@ -1,10 +1,24 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Send, X } from "lucide-react";
-import { useParams } from "next/navigation";
+import {
+  Send,
+  X,
+  Plus,
+  Save,
+  RotateCcw,
+  FileText,
+  Users,
+  MessageSquare,
+  Trash2,
+  Folder,
+  MoveLeft,
+  RefreshCcw,
+} from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
 import {
   useAddPartner,
+  useProfile,
   useShowMyProject,
   useUpdateFileTree,
 } from "@/backend/query";
@@ -38,9 +52,9 @@ export default function Page() {
   const param = useParams();
   const rawId = param?.projectid;
   const id = Array.isArray(rawId) ? rawId[0] : rawId;
-  console.log("PPPID:", id);
 
   const { data } = useShowMyProject(id);
+  const { data: userData } = useProfile();
   const { mutate: mutateUpdateFileTree, isPending } = useUpdateFileTree();
   const { mutate: mutateAddPartner, isPending: isAddPartnerPending } =
     useAddPartner();
@@ -205,7 +219,7 @@ export default function Page() {
   //@ts-ignore
   function WriteAiMessage({ message }) {
     try {
-      const messageObject = JSON.parse(message);
+      const messageObject = message;
       return (
         <div className="overflow-auto p-2">
           <Markdown children={messageObject.text} />
@@ -216,7 +230,7 @@ export default function Page() {
       return <div className="text-red-500">Error parsing AI message.</div>;
     }
   }
-  
+
   useEffect(() => {
     if (!id) return; // wait until id is defined
 
@@ -232,7 +246,6 @@ export default function Page() {
     // stable handler so we can remove it on cleanup
     const handler = (data: any) => {
       try {
-        console.log("Message received raw:", data);
         // server might send { message: "<json-string>" } or { message: {...} }
         if (data && typeof data.message === "string") {
           const parsed = JSON.parse(data.message);
@@ -281,7 +294,7 @@ export default function Page() {
     if (!message.trim()) return;
     const newMessage = {
       message,
-      sender: "user",
+      sender: userData?.data?.o?.name || userData?.data?.o?.email,
     };
     sendMessage("project-message", newMessage);
     appendOutgoingMessages(newMessage);
@@ -289,203 +302,361 @@ export default function Page() {
     scrollToBottom();
   };
 
-  console.log(messages);
-  return (
-    <div className="p-4 space-y-4">
-      {/* top controls */}
-      <div className="flex gap-2">
-        <input
-          placeholder="filename"
-          value={newFileName}
-          onChange={(e) => setNewFileName(e.target.value)}
-          className="px-2 py-1 border rounded"
-        />
-        <button
-          onClick={addFileToTree}
-          className="px-3 py-1 bg-blue-600 text-white rounded"
-        >
-          add
-        </button>
+  const router = useRouter();
 
-        <div className="ml-auto">
-          <button
-            onClick={openPartnerModal}
-            className="px-3 py-1 bg-indigo-600 text-white rounded"
-            aria-haspopup="dialog"
-          >
-            Add Partner
-          </button>
+  return (
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Header */}
+      <div className="bg-white/80 backdrop-blur-lg border-b border-slate-200 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <button
+                className="w-10 h-10 bg-linear-to-br from-gray-500 to-gray-600 rounded-lg flex items-center justify-center shadow-lg"
+                onClick={() => router.push("/main")}
+              >
+                <MoveLeft color="white" />
+              </button>
+              <div className="w-10 h-10 bg-linear-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+                <Folder className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-slate-800">
+                  {data?.o?.name || "PROJECT"}
+                </h1>
+                <p className="text-sm text-slate-500">
+                  Collaborative workspace
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsChatOpen((p) => !p)}
+                className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 text-sm font-medium"
+              >
+                <MessageSquare size={16} />
+                <span className="hidden sm:inline">
+                  {isChatOpen ? "Close Chat" : "Open Chat"}
+                </span>
+              </button>
+
+              <button
+                onClick={openPartnerModal}
+                className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 text-sm font-medium"
+              >
+                <Users size={16} />
+                <span className="hidden sm:inline">Add Partner</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-      <button
-        onClick={() => setIsChatOpen((p) => !p)}
-        className="px-3 py-1 bg-indigo-500 text-white rounded"
-      >
-        {isChatOpen ? "Close Chat" : "Open Chat"}
-      </button>
-      {isChatOpen && (
-        <div className="fixed bottom-4 right-4 w-96 bg-white border rounded-lg shadow-lg flex flex-col">
-          <div className="flex items-center justify-between p-3 border-b">
-            <h3 className="font-semibold">Project Chat</h3>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* New File Input */}
+        <div className="bg-white rounded-xl shadow-lg p-4 mb-6 border border-slate-200">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1">
+              <input
+                placeholder="Enter filename (e.g., index.js, styles.css)"
+                value={newFileName}
+                onChange={(e) => setNewFileName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && addFileToTree()}
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 text-sm"
+              />
+            </div>
             <button
-              onClick={() => setIsChatOpen(false)}
-              className="text-gray-500 hover:text-gray-700"
+              onClick={addFileToTree}
+              className="flex items-center justify-center gap-2 px-6 py-2.5 bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm"
             >
-              <X size={18} />
+              <Plus size={18} />
+              <span>Create File</span>
             </button>
           </div>
+        </div>
 
-          <div
-            ref={messageBoxRef}
-            className="flex-1 overflow-y-auto p-3 space-y-2"
-            style={{ maxHeight: "300px" }}
-          >
-            {messages.length === 0 && (
-              <div className="text-sm text-gray-400 text-center">
-                No messages yet
+        {/* Files and Editor Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Files Sidebar */}
+          <div className="lg:col-span-3 space-y-4">
+            {/* All Files */}
+            <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+              <div className="bg-linear-to-r from-slate-700 to-slate-800 px-4 py-3">
+                <h3 className="font-semibold text-white flex items-center gap-2">
+                  <FileText size={16} />
+                  All Files
+                </h3>
               </div>
-            )}
-            {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={`p-2 rounded-lg ${
-                  msg.sender === "user"
-                    ? "bg-indigo-100 self-end"
-                    : "bg-gray-100"
-                }`}
-              >
-                <div className="text-sm">
-                  {msg.sender.email === "AI" ? (
-                    <WriteAiMessage message={msg.message} />
-                  ) : (
-                    <Markdown>{msg.message}</Markdown>
-                  )}
+              <div className="p-4 max-h-64 overflow-y-auto">
+                {Object.keys(fileTree || {}).length === 0 ? (
+                  <div className="text-sm text-slate-400 text-center py-8">
+                    No files yet. Create one to start.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {Object.keys(fileTree || {}).map((file) => (
+                      <div
+                        key={file}
+                        className="group flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 transition-colors duration-150"
+                      >
+                        <button
+                          onClick={() => {
+                            setCurrentFile(file);
+                            setOpenFiles((prev) => new Set([...prev, file]));
+                          }}
+                          className="flex-1 text-left text-sm text-indigo-600 hover:text-indigo-800 font-medium truncate"
+                        >
+                          {file}
+                        </button>
+                        <button
+                          onClick={() => deleteFileFromTree(file)}
+                          className="opacity-0 group-hover:opacity-100 p-1.5 text-red-500 hover:bg-red-50 rounded transition-all duration-150"
+                          title="Delete file"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Open Files */}
+            <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+              <div className="bg-linear-to-r from-blue-600 to-indigo-600 px-4 py-3">
+                <h3 className="font-semibold text-white flex items-center gap-2">
+                  <Folder size={16} />
+                  Open Files
+                </h3>
+              </div>
+              <div className="p-4 max-h-64 overflow-y-auto">
+                {Array.from(openFiles).length === 0 ? (
+                  <div className="text-sm text-slate-400 text-center py-8">
+                    No open files
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {Array.from(openFiles).map((file) => (
+                      <div
+                        key={file}
+                        className={`group flex items-center justify-between p-2 rounded-lg transition-all duration-150 ${
+                          currentFile === file
+                            ? "bg-indigo-50 border border-indigo-200"
+                            : "hover:bg-slate-50"
+                        }`}
+                      >
+                        <button
+                          onClick={() => setCurrentFile(file)}
+                          className={`flex-1 text-left text-sm font-medium truncate ${
+                            currentFile === file
+                              ? "text-indigo-700"
+                              : "text-slate-700 hover:text-indigo-600"
+                          }`}
+                        >
+                          {file}
+                        </button>
+                        <button
+                          onClick={() => closeFile(file)}
+                          className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-all duration-150"
+                          title="Close file"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Editor */}
+          <div className="lg:col-span-9">
+            <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+              <div className="bg-linear-to-r from-slate-700 to-slate-800 px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="ml-3 text-sm text-slate-300 font-medium">
+                    {currentFile || "No file selected"}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-3 py-1 bg-gray-800 text-white rounded hover:bg-gray-700"
+                >
+                  <RefreshCcw/>
+                </button>
+              </div>
+
+              <div className="p-6">
+                <textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Select or create a file to start editing..."
+                  className="w-full h-96 border border-slate-300 px-4 py-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 font-mono text-sm resize-none"
+                />
+
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <button
+                    disabled={!currentFile || isPending}
+                    onClick={saveCurrentFile}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
+                  >
+                    <Save size={16} />
+                    {isPending ? "Saving..." : "Save Changes"}
+                  </button>
+
+                  <button
+                    disabled={!currentFile}
+                    onClick={() => {
+                      const contents = fileTree[currentFile!]?.file?.contents;
+                      setContent(typeof contents === "string" ? contents : "");
+                    }}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
+                  >
+                    <RotateCcw size={16} />
+                    Revert Changes
+                  </button>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
+        </div>
+      </div>
 
-          <div className="p-2 border-t flex items-center gap-2">
-            <input
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Type message..."
-              className="flex-1 border rounded px-2 py-1 text-sm"
-              onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            />
-            <button
-              onClick={handleSend}
-              className="bg-indigo-500 text-white p-2 rounded"
+      {/* Chat Window */}
+      {isChatOpen && (
+        <div className="fixed bottom-6 right-6 w-full max-w-md z-50">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden mx-4 sm:mx-0">
+            <div className="bg-linear-to-r from-blue-600 to-indigo-600 px-5 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                  <MessageSquare className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-white">Project Chat</h3>
+                  <p className="text-xs text-blue-100">
+                    Collaborate in real-time
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsChatOpen(false)}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-150"
+              >
+                <X size={20} className="text-white" />
+              </button>
+            </div>
+
+            <div
+              ref={messageBoxRef}
+              className="p-4 space-y-3 overflow-y-auto bg-slate-50"
+              style={{ height: "400px" }}
             >
-              <Send size={16} />
-            </button>
+              {messages.length === 0 && (
+                <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                  <MessageSquare size={48} className="mb-3 opacity-50" />
+                  <p className="text-sm">No messages yet</p>
+                  <p className="text-xs mt-1">Start a conversation</p>
+                </div>
+              )}
+              {messages.map((msg, i) => (
+                <div
+                  key={i}
+                  className={`flex ${
+                    msg.sender ===
+                    (userData?.data?.o?.name || userData?.data?.o?.email)
+                      ? "justify-end"
+                      : "justify-start"
+                  }`}
+                >
+                  <div
+                    className={`max-w-[80%] rounded-2xl px-4 py-2.5 shadow-sm ${
+                      msg.sender ===
+                      (userData?.data?.o?.name || userData?.data?.o?.email)
+                        ? "bg-linear-to-r from-indigo-500 to-blue-500 text-white"
+                        : "bg-white text-slate-800 border border-slate-200"
+                    }`}
+                  >
+                    <div className="text-sm wrap-break-word">
+                      {msg.sender.email === "AI" ? (
+                        <div className="flex flex-col items-start gap-1">
+                          <p className="font-semibold text-xs">AI</p>
+                          <WriteAiMessage message={msg.message} />
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-start gap-1">
+                          <p className="font-semibold text-xs">
+                            {msg?.sender !==
+                            (userData?.data?.o?.name ||
+                              userData?.data?.o?.email)
+                              ? msg.sender
+                              : "You"}
+                          </p>
+                          <Markdown>{msg?.message}</Markdown>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-4 bg-white border-t border-slate-200">
+              <div className="flex items-end gap-2">
+                <input
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Type your message..."
+                  className="flex-1 border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && !e.shiftKey && handleSend()
+                  }
+                />
+                <button
+                  onClick={handleSend}
+                  className="bg-linear-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white p-3 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
+                >
+                  <Send size={18} />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
-      {/* files / open files / editor (unchanged) */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <h3 className="font-semibold mb-2">Files</h3>
-          <div className="flex flex-col gap-2">
-            {Object.keys(fileTree || {}).length === 0 && (
-              <div className="text-sm text-gray-500">No files.</div>
-            )}
-            {Object.keys(fileTree || {}).map((file) => (
-              <div key={file} className="flex items-center justify-between">
-                <button
-                  onClick={() => {
-                    setCurrentFile(file);
-                    setOpenFiles((prev) => new Set([...prev, file]));
-                  }}
-                  className="text-blue-500 hover:underline"
-                >
-                  {file}
-                </button>
-                <button
-                  onClick={() => deleteFileFromTree(file)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  Delete
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <h3 className="font-semibold mb-2 border-2">Open Files</h3>
-          <div className="flex flex-col gap-2">
-            {Array.from(openFiles).map((file) => (
-              <div key={file} className="flex items-center justify-between">
-                <button
-                  onClick={() => setCurrentFile(file)}
-                  className="text-blue-500 hover:underline"
-                >
-                  {file}
-                </button>
-                <button
-                  onClick={() => closeFile(file)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Select or create a file to edit"
-          className="w-full h-48 border px-4 py-2 rounded-md outline-none shadow-lg"
-        />
-        <div className="mt-2 flex gap-2">
-          <button
-            disabled={!currentFile || isPending}
-            onClick={saveCurrentFile}
-            className="px-4 py-2 bg-red-600 text-white rounded disabled:opacity-60"
-          >
-            Save
-          </button>
-          <button
-            disabled={!currentFile}
-            onClick={() => {
-              const contents = fileTree[currentFile!]?.file?.contents;
-              setContent(typeof contents === "string" ? contents : "");
-            }}
-            className="px-4 py-2 bg-gray-200 rounded"
-          >
-            Revert
-          </button>
-        </div>
-      </div>
-
       {/* Partner Modal */}
       {isPartnerModalOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center"
-        >
-          <div
-            className="fixed inset-0 bg-black/40"
-            onClick={closePartnerModal}
-            aria-hidden
-          />
-          <div className="relative z-50 w-full max-w-md mx-4 bg-white rounded-lg shadow-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Add Collaborator</h2>
-              <button
-                onClick={closePartnerModal}
-                aria-label="Close"
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X size={18} />
-              </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all">
+            <div className="bg-linear-to-r from-purple-600 to-pink-600 px-6 py-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                    <Users className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-white">
+                      Add Collaborator
+                    </h2>
+                    <p className="text-sm text-purple-100">
+                      Invite a team member
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={closePartnerModal}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors duration-150"
+                >
+                  <X size={20} className="text-white" />
+                </button>
+              </div>
             </div>
 
             <form
@@ -493,42 +664,49 @@ export default function Page() {
                 e.preventDefault();
                 handleAddPartner();
               }}
-              className="space-y-3"
+              className="p-6 space-y-5"
             >
-              <label className="block text-sm font-medium">
-                Collaborator Email
-              </label>
-              <input
-                type="email"
-                value={partnerEmail}
-                onChange={(e) => setPartnerEmail(e.target.value)}
-                placeholder="user@example.com"
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                required
-              />
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={partnerEmail}
+                  onChange={(e) => setPartnerEmail(e.target.value)}
+                  placeholder="collaborator@example.com"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-sm"
+                  required
+                />
+              </div>
 
               {partnerError && (
-                <div className="text-sm text-red-600">{partnerError}</div>
-              )}
-              {partnerSuccess && (
-                <div className="text-sm text-green-600">{partnerSuccess}</div>
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {partnerError}
+                </div>
               )}
 
-              <div className="flex justify-end gap-2 pt-2">
+              {partnerSuccess && (
+                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+                  {partnerSuccess}
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
                 <button
                   type="button"
                   onClick={closePartnerModal}
-                  className="px-4 py-2 rounded border"
                   disabled={isAddPartnerPending}
+                  className="flex-1 px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 text-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isAddPartnerPending}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded"
+                  className="flex-1 px-5 py-3 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg shadow-md hover:shadow-lg font-medium transition-all duration-200 disabled:opacity-50 text-sm"
                 >
-                  {isAddPartnerPending ? "Adding..." : "Add"}
+                  {isAddPartnerPending ? "Adding..." : "Add Partner"}
                 </button>
               </div>
             </form>
