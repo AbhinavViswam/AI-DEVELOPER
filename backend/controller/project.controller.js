@@ -23,14 +23,30 @@ export const createProject = async (req, res) => {
 
 export const deleteProject = async (req, res) => {
   try {
-    const userEmail = req.user;
-    const {id} = req.params
+    const userId = req.user.id; // logged-in user
+    const { id } = req.params; // project id
+
     const project = await Project.findById(id);
+
     if (!project) {
-      return res.status(404).json({ e: "No projects found" });
+      return res.status(404).json({ e: "Project not found" });
     }
+
+    // extract owner id
+    const ownerId = project.owner?.[0]?.ownerid?.toString();
+
+    // Check if logged-in user is the owner
+    if (ownerId !== userId) {
+      return res
+        .status(403)
+        .json({ e: "Only the project owner can delete this project." });
+    }
+
+    await Project.findByIdAndDelete(id);
+
+    return res.status(200).json({ o: "Project deleted successfully" });
   } catch (error) {
-    console.error(err);
+    console.error(error);
     return res.status(500).json({ e: "Internal server error" });
   }
 };
