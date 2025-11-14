@@ -114,7 +114,7 @@ export default function Project({}: {}) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-gray-100 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-gray-100 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         {/* User Profile Card - Full Width */}
         <div className="mb-6">
@@ -122,7 +122,7 @@ export default function Project({}: {}) {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4 flex-1">
                 <div className="shrink-0">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-slate-600 rounded-full flex items-center justify-center shadow-lg">
+                  <div className="w-16 h-16 bg-linear-to-br from-blue-500 to-slate-600 rounded-full flex items-center justify-center shadow-lg">
                     <User className="w-8 h-8 text-white" />
                   </div>
                 </div>
@@ -179,7 +179,7 @@ export default function Project({}: {}) {
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-8 mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 via-blue-600 to-slate-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-14 h-14 bg-linear-to-br from-blue-500 via-blue-600 to-slate-600 rounded-xl flex items-center justify-center shadow-lg">
                 <FolderOpen className="w-7 h-7 text-white" />
               </div>
               <div>
@@ -196,7 +196,7 @@ export default function Project({}: {}) {
             <button
               type="button"
               onClick={openModal}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 via-blue-700 to-slate-700 hover:from-blue-700 hover:via-blue-800 hover:to-slate-800 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-semibold hover:scale-105 active:scale-95"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-linear-to-r from-blue-600 via-blue-700 to-slate-700 hover:from-blue-700 hover:via-blue-800 hover:to-slate-800 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-semibold hover:scale-105 active:scale-95"
             >
               <Plus size={20} strokeWidth={2.5} />
               <span>Create Project</span>
@@ -218,7 +218,7 @@ export default function Project({}: {}) {
         ) : projects.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-12 sm:p-16">
             <div className="flex flex-col items-center justify-center text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-slate-100 rounded-full flex items-center justify-center mb-6">
+              <div className="w-20 h-20 bg-linear-to-br from-blue-100 to-slate-100 rounded-full flex items-center justify-center mb-6">
                 <FolderOpen className="w-10 h-10 text-blue-600" />
               </div>
               <h3 className="text-xl font-bold text-slate-800 mb-2">
@@ -231,7 +231,7 @@ export default function Project({}: {}) {
               <button
                 type="button"
                 onClick={openModal}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-slate-600 hover:from-blue-700 hover:to-slate-700 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
+                className="flex items-center gap-2 px-6 py-3 bg-linear-to-r from-blue-600 to-slate-600 hover:from-blue-700 hover:to-slate-700 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
               >
                 <Plus size={18} />
                 Create Your First Project
@@ -246,12 +246,12 @@ export default function Project({}: {}) {
                 className="group relative bg-white rounded-xl shadow-md hover:shadow-2xl border border-slate-200 overflow-hidden transition-all duration-300 hover:-translate-y-1"
               >
                 {/* Gradient Top Border */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-blue-600 to-slate-600" />
+                <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-blue-500 via-blue-600 to-slate-600" />
 
                 <div className="p-6">
                   {/* Project Icon & Name */}
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-slate-100 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200">
+                    <div className="w-12 h-12 bg-linear-to-br from-blue-100 to-slate-100 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200">
                       <FolderOpen className="w-6 h-6 text-blue-600" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -263,13 +263,13 @@ export default function Project({}: {}) {
                   </div>
 
                   {/* Divider */}
-                  <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent mb-4" />
+                  <div className="h-px bg-linear-to-r from-transparent via-slate-200 to-transparent mb-4" />
 
                   {/* Project Details */}
                   <div className="space-y-3 mb-4">
                     {/* Owner */}
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-amber-100 to-orange-100 rounded-lg flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 bg-linear-to-br from-amber-100 to-orange-100 rounded-lg flex items-center justify-center shrink-0">
                         <Crown className="w-4 h-4 text-amber-600" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -290,7 +290,7 @@ export default function Project({}: {}) {
 
                     {/* Users Count */}
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-slate-100 rounded-lg flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 bg-linear-to-br from-blue-100 to-slate-100 rounded-lg flex items-center justify-center shrink-0">
                         <Users className="w-4 h-4 text-blue-600" />
                       </div>
                       <div className="flex-1">
@@ -311,7 +311,7 @@ export default function Project({}: {}) {
                   <div className="flex gap-2 pt-4 border-t border-slate-100">
                     <button
                       onClick={() => router.push(`/project/${project._id}`)}
-                      className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-slate-600 hover:from-blue-700 hover:to-slate-700 text-white rounded-lg text-sm font-semibold transition-all duration-200 hover:scale-105 active:scale-95"
+                      className="flex-1 px-4 py-2 bg-linear-to-r from-blue-600 to-slate-600 hover:from-blue-700 hover:to-slate-700 text-white rounded-lg text-sm font-semibold transition-all duration-200 hover:scale-105 active:scale-95"
                     >
                       Open Project
                     </button>
@@ -329,7 +329,7 @@ export default function Project({}: {}) {
                 </div>
 
                 {/* Hover Effect */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-slate-500/0 group-hover:from-blue-500/5 group-hover:to-slate-500/5 transition-all duration-300 pointer-events-none" />
+                <div className="absolute inset-0 bg-linear-to-br from-blue-500/0 to-slate-500/0 group-hover:from-blue-500/5 group-hover:to-slate-500/5 transition-all duration-300 pointer-events-none" />
               </div>
             ))}
           </div>
@@ -347,7 +347,7 @@ export default function Project({}: {}) {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
-              <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-slate-700 px-6 py-5">
+              <div className="bg-linear-to-r from-blue-600 via-blue-700 to-slate-700 px-6 py-5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
@@ -399,7 +399,7 @@ export default function Project({}: {}) {
                   )}
                 </div>
 
-                <div className="bg-gradient-to-br from-blue-50 to-slate-50 rounded-xl p-4 border border-blue-100">
+                <div className="bg-linear-to-br from-blue-50 to-slate-50 rounded-xl p-4 border border-blue-100">
                   <p className="text-xs text-slate-600 leading-relaxed">
                     <span className="font-semibold text-blue-700">
                       Tip:
@@ -428,7 +428,7 @@ export default function Project({}: {}) {
                   className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-semibold shadow-lg transition-all duration-200 ${
                     isPending
                       ? "bg-slate-400 cursor-not-allowed"
-                      : "bg-gradient-to-r from-blue-600 via-blue-700 to-slate-700 hover:from-blue-700 hover:via-blue-800 hover:to-slate-800 hover:shadow-xl"
+                      : "bg-linear-to-r from-blue-600 via-blue-700 to-slate-700 hover:from-blue-700 hover:via-blue-800 hover:to-slate-800 hover:shadow-xl"
                   }`}
                 >
                   {isPending && <Loader2 size={16} className="animate-spin" />}
@@ -455,7 +455,7 @@ export default function Project({}: {}) {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
-              <div className="bg-gradient-to-r from-red-600 to-rose-600 px-6 py-5">
+              <div className="bg-linear-to-r from-red-600 to-rose-600 px-6 py-5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
@@ -511,7 +511,7 @@ export default function Project({}: {}) {
                   className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-semibold shadow-lg transition-all duration-200 ${
                     deletePending
                       ? "bg-slate-400 cursor-not-allowed"
-                      : "bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 hover:shadow-xl"
+                      : "bg-linear-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 hover:shadow-xl"
                   }`}
                 >
                   {deletePending && (

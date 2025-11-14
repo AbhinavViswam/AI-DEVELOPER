@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLogin } from "@/backend/query";
+import { Mail, Lock, LogIn, AlertCircle } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,7 +18,6 @@ export default function LoginPage() {
       setLocalError("Please enter both email and password.");
       return false;
     }
-    // basic email pattern
     const emailPattern = /^\S+@\S+\.\S+$/;
     if (!emailPattern.test(email)) {
       setLocalError("Please enter a valid email address.");
@@ -35,13 +35,10 @@ export default function LoginPage() {
       { email, password },
       {
         onSuccess: (e) => {
-          // redirect after successful login
           router.push("/");
           localStorage.setItem("token", e?.data?.token);
         },
         onError: (err) => {
-          // server error message will be in err.message
-          // we don't need to set anything here because isError && error will show it
           console.error("Login error:", err);
         },
       }
@@ -49,63 +46,103 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-md bg-white p-8 rounded-lg shadow"
-        autoComplete="on"
-      >
-        <h1 className="text-2xl font-semibold mb-6 text-center">Log in</h1>
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50 p-4">
+      <div className="w-full max-w-md">
+        <div className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-white/20">
+          {/* Header with gradient text */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 mb-4">
+              <LogIn className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Welcome Back
+            </h1>
+            <p className="text-gray-600 mt-2">Sign in to your account</p>
+          </div>
 
-        <label className="block mb-2 text-sm font-medium">Email</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-2 mb-3 border rounded"
-          placeholder="you@example.com"
-          aria-label="Email"
-        />
+          <form onSubmit={handleSubmit} autoComplete="on" className="space-y-5">
+            {/* Email Input */}
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Email
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="w-5 h-5 text-gray-400" />
+                </div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+                  placeholder="you@example.com"
+                  aria-label="Email"
+                />
+              </div>
+            </div>
 
-        <label className="block mb-2 text-sm font-medium">Password</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-2 mb-3 border rounded"
-          placeholder="Your password"
-          aria-label="Password"
-        />
+            {/* Password Input */}
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="w-5 h-5 text-gray-400" />
+                </div>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+                  placeholder="Your password"
+                  aria-label="Password"
+                />
+              </div>
+            </div>
 
-        <button
-          type="submit"
-          disabled={isPending}
-          className="w-full py-2 rounded bg-blue-600 text-white font-medium disabled:opacity-60"
-        >
-          {isPending ? "Logging in..." : "Log in"}
-        </button>
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isPending}
+              className="w-full py-3 rounded-lg bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium shadow-lg shadow-blue-500/30 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+            >
+              {isPending ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Logging in...
+                </>
+              ) : (
+                <>
+                  <LogIn className="w-5 h-5" />
+                  Log in
+                </>
+              )}
+            </button>
 
-        {/* client-side validation error */}
-        {localError && (
-          <p className="text-red-600 text-sm mt-3" role="alert">
-            {localError}
-          </p>
-        )}
+            {/* Error Messages */}
+            {(localError || isError) && (
+              <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg" role="alert">
+                <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                <p className="text-red-600 text-sm">
+                  {localError || error?.message || "Login failed"}
+                </p>
+              </div>
+            )}
+          </form>
 
-        {/* server error from mutation */}
-        {isError && (
-          <p className="text-red-600 text-sm mt-3" role="alert">
-            {error?.message || "Login failed"}
-          </p>
-        )}
-
-        <div className="mt-4 text-center text-sm text-gray-600">
-          Don't have an account?{" "}
-          <a href="/signup" className="text-blue-600">
-            Sign up
-          </a>
+          {/* Footer */}
+          <div className="mt-6 text-center text-sm text-gray-600">
+            Don't have an account?{" "}
+            <a
+              href="/signup"
+              className="font-medium bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent hover:from-blue-700 hover:to-indigo-700"
+            >
+              Sign up
+            </a>
+          </div>
         </div>
-      </form>
+      </div>
     </div>
   );
 }
