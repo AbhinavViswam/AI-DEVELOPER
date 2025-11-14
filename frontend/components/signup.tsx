@@ -48,6 +48,8 @@ export default function SignupPage() {
         localStorage.setItem("token", e?.data?.token);
       },
       onError: (err) => {
+        //@ts-ignore
+        setLocalError(err?.response?.data?.e)
         console.error("Signup error:", err);
       },
     });
@@ -156,7 +158,7 @@ export default function SignupPage() {
               <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg" role="alert">
                 <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                 <p className="text-red-600 text-sm">
-                  {localError || signupMutation.error?.message || "Signup failed"}
+                  {localError || "Signup failed"}
                 </p>
               </div>
             )}

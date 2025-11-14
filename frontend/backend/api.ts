@@ -68,13 +68,11 @@ export interface Owner {
 
 export interface ProjectUser {
   userEmail?: string;
-  // add other fields if present
 }
 
 export interface FileNode {
   file?: {
     contents?: string;
-    // add other fields (meta, language, etc) if needed
   };
 }
 
@@ -89,13 +87,11 @@ export interface ProjectPayload {
   users?: ProjectUser[];
   fileTree?: FileTree;
   __v?: number;
-  // extend with other fields returned by your backend
 }
 
 export interface ShowProjectResponse {
-  // matches the server format you used in component: res.data.o
   o: ProjectPayload;
-  // server may return other top-level props like message, ok, etc.
+
   [k: string]: any;
 }
 

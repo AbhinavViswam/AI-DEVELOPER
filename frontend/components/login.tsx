@@ -8,7 +8,6 @@ import { Mail, Lock, LogIn, AlertCircle } from "lucide-react";
 export default function LoginPage() {
   const router = useRouter();
   const { mutate, isPending, isError, error } = useLogin();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [localError, setLocalError] = useState("");
@@ -39,6 +38,8 @@ export default function LoginPage() {
           localStorage.setItem("token", e?.data?.token);
         },
         onError: (err) => {
+          //@ts-ignore
+          setLocalError(err?.response?.data?.e)
           console.error("Login error:", err);
         },
       }
@@ -125,7 +126,7 @@ export default function LoginPage() {
               <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg" role="alert">
                 <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                 <p className="text-red-600 text-sm">
-                  {localError || error?.message || "Login failed"}
+                  {localError || "Login failed"}
                 </p>
               </div>
             )}
