@@ -1,5 +1,5 @@
 import {Router} from "express"
-import { createProject,showProject, addProjectPartner, showProjectById, updateFileTree, deleteProject} from "../controller/project.controller.js";
+import { createProject,showProject, addProjectPartner, showProjectById, updateFileTree, deleteProject, deleteProjectPartner} from "../controller/project.controller.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 
 const router=Router();
@@ -15,6 +15,9 @@ router.route("/delete/:id")
 
 router.route("/addpartner/:id")
 .put(authMiddleware,addProjectPartner)
+
+router.route("/deletepartner/:id")
+.put(authMiddleware,deleteProjectPartner)
 
 router.route("/showmyproject/:pid")
 .get(authMiddleware,showProjectById)

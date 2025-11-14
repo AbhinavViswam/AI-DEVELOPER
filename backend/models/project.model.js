@@ -11,6 +11,9 @@ const projectSchema = new mongoose.Schema({
      },
      ownerEmail:{
          type:String,
+     },
+     ownerName:{
+         type:String,
      }
  }],
     users:[{
@@ -19,6 +22,9 @@ const projectSchema = new mongoose.Schema({
         ref:"User"
     },
     userEmail:{
+        type:String,
+    },
+    userName:{
         type:String,
     }
 }],

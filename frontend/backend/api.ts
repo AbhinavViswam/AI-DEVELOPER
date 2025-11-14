@@ -117,6 +117,13 @@ export const addPartner = async (id: any, partnerEmail: any) => {
   return res.data;
 };
 
+export const deletePartner = async (id: any, partnerEmail: any) => {
+  const res = await api.put(`/project/deletepartner/${id}`, {
+    partnerEmail,
+  });
+  return res.data;
+};
+
 export const deleteProject = async (id: any) => {
     const pid = id.projectId
   const res = await api.delete(`/project/delete/${pid}`);

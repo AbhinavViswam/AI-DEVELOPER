@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
     addPartner,
   createProject,
+  deletePartner,
   deleteProject,
   login,
   logout,
@@ -112,6 +113,28 @@ export const useAddPartner = () => {
       id: any;
       partnerEmail: string;
     }) => addPartner(id, partnerEmail),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["showproject"] });
+      queryClient.invalidateQueries({ queryKey: ["showmyproject"] });
+    },
+    onError: (error: any) => {
+      console.error("❌ Failed to add partner:", error);
+    },
+  });
+};
+
+export const useDeletePartner = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      partnerEmail,
+    }: {
+      id: any;
+      partnerEmail: any;
+    }) => deletePartner(id, partnerEmail),
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["showproject"] });

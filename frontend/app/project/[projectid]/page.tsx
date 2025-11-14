@@ -18,6 +18,7 @@ import {
 import { useParams, useRouter } from "next/navigation";
 import {
   useAddPartner,
+  useDeletePartner,
   useProfile,
   useShowMyProject,
   useUpdateFileTree,
@@ -58,6 +59,8 @@ export default function Page() {
   const { mutate: mutateUpdateFileTree, isPending } = useUpdateFileTree();
   const { mutate: mutateAddPartner, isPending: isAddPartnerPending } =
     useAddPartner();
+  const { mutate: mutateDeletePartner, isPending: isDeletePartnerPending } =
+    useDeletePartner();
 
   // sync fileTree when project data loads
   useEffect(() => {
@@ -216,6 +219,7 @@ export default function Page() {
       }
     );
   };
+
   //@ts-ignore
   function WriteAiMessage({ message }) {
     try {
@@ -377,6 +381,91 @@ export default function Page() {
           </div>
         </div>
 
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-slate-200">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-linear-to-br from-indigo-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
+              <Users className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-800">Team Members</h2>
+              <p className="text-sm text-slate-500">Project collaborators</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Owner Section */}
+            <div className="bg-linear-to-br from-indigo-50 to-blue-50 rounded-lg p-4 border border-indigo-200">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 bg-linear-to-br from-indigo-600 to-blue-600 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">★</span>
+                </div>
+                <h3 className="font-semibold text-slate-700">Owner</h3>
+              </div>
+              <div className="space-y-2">
+                {data?.o?.owner?.map((owner: any) => (
+                  <div
+                    key={owner._id}
+                    className="bg-white rounded-lg p-3 shadow-sm border border-slate-200"
+                  >
+                    <p className="text-sm font-medium text-slate-800 truncate">
+                      {owner.ownerName}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {owner.ownerEmail}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Team Members Section */}
+            <div className="bg-linear-to-br from-slate-50 to-gray-50 rounded-lg p-4 border border-slate-200">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 bg-linear-to-br from-slate-600 to-gray-600 rounded-full flex items-center justify-center">
+                  <Users className="w-4 h-4 text-white" />
+                </div>
+                <h3 className="font-semibold text-slate-700">
+                  Collaborators ({data?.o?.users?.length || 0})
+                </h3>
+              </div>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {data?.o?.users && data.o.users.length > 0 ? (
+                  data.o.users.map((user: any) => (
+                    <div
+                      key={user._id}
+                      className="bg-white rounded-lg p-3 shadow-sm border border-slate-200 flex items-center justify-between"
+                    >
+                      <div>
+                        <p className="text-sm font-medium text-slate-800 truncate">
+                        {user.userName}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {user.userEmail}
+                      </p>
+                      </div>
+
+                      <button
+                        onClick={() => mutateDeletePartner({id:id,partnerEmail:user.userEmail})}
+                      >
+                        <Trash2 color="red" size={18} />
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-6">
+                    <p className="text-sm text-slate-400">
+                      No collaborators yet
+                    </p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Add team members to get started
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Files and Editor Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Files Sidebar */}
@@ -490,7 +579,7 @@ export default function Page() {
                   onClick={() => window.location.reload()}
                   className="px-3 py-1 bg-gray-800 text-white rounded hover:bg-gray-700"
                 >
-                  <RefreshCcw/>
+                  <RefreshCcw />
                 </button>
               </div>
 

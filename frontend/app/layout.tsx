@@ -5,6 +5,9 @@ import { ClientProvider } from "@/clientProvider";
 export const metadata: Metadata = {
   title: 'Z CODE',
   description: 'Collaborate and build with AI',
+  icons:{
+    icon:"./logo.png"
+  }
 }
 
 export default function RootLayout({

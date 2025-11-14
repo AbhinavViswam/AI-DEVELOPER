@@ -278,7 +278,7 @@ export default function Project({}: {}) {
                         </p>
                         {project.owner && project.owner.length > 0 ? (
                           <p className="text-sm font-semibold text-slate-700 truncate">
-                            {project.owner[0].ownerEmail}
+                            {project.owner[0].ownerName}
                           </p>
                         ) : (
                           <p className="text-sm text-slate-400 italic">

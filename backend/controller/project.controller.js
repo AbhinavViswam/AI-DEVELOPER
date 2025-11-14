@@ -11,7 +11,9 @@ export const createProject = async (req, res) => {
     }
     const project = await Project.create({
       name: projectName,
-      owner: [{ ownerid: user._id, ownerEmail: userEmail }],
+      owner: [
+        { ownerid: user._id, ownerEmail: userEmail, ownerName: user.name },
+      ],
       users: [],
     });
     return res.status(200).json({ m: "Project Created", o: project });
@@ -79,6 +81,53 @@ export const addProjectPartner = async (req, res) => {
     const { id } = req.params;
     const userEmail = req.user.email;
     const { partnerEmail } = req.body;
+
+    const user = await User.findOne({ email: userEmail });
+    if (!user) return res.status(404).json({ e: "User does not exist" });
+
+    const project = await Project.findById(id);
+    if (!project) return res.status(404).json({ e: "Project does not exist" });
+
+    const partner = await User.findOne({ email: partnerEmail });
+    if (!partner) return res.status(404).json({ e: "Partner does not exist" });
+
+    // Only owner can add partner
+    if (project.owner[0].ownerid.toString() !== user._id.toString()) {
+      return res
+        .status(401)
+        .json({ e: "You are not the owner of the project" });
+    }
+
+    // Check if partner already exists
+    const isPartnerAlreadyAdded = project.users.some(
+      (u) => u.userid.toString() === partner._id.toString()
+    );
+
+    if (isPartnerAlreadyAdded) {
+      return res.status(400).json({ e: "Partner already added" });
+    }
+
+    // Add partner
+    project.users.push({
+      userid: partner._id,
+      userEmail: partner.email,
+      userName: partner.name,
+    });
+
+    await project.save();
+
+    return res.status(200).json({ m: "Partner added", o: project });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ e: "Internal server error" });
+  }
+};
+
+export const deleteProjectPartner = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userEmail = req.user.email;
+    const { partnerEmail } = req.body;
     const user = await User.findOne({ email: userEmail });
     if (!user) {
       return res.status(404).json({ e: "User does not exist" });
@@ -96,12 +145,23 @@ export const addProjectPartner = async (req, res) => {
         .status(401)
         .json({ e: "You are not the owner of the project" });
     }
-    if (project.users.includes(partner._id)) {
-      return res.status(400).json({ e: "Partner already added" });
+    const isPartner = project.users.some(
+      (u) => u.userid.toString() === partner._id.toString()
+    );
+
+    if (!isPartner) {
+      return res
+        .status(400)
+        .json({ e: "Partner does not exist in this project" });
     }
-    project.users.push({ userid: partner._id, userEmail: partnerEmail });
+
+    project.users = project.users.filter(
+      (u) => u.userid.toString() !== partner._id.toString()
+    );
     await project.save();
-    return res.status(200).json({ m: "Partner added", o: project });
+    return res
+      .status(200)
+      .json({ m: "Partner removed successfully", o: project });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ e: "Internal server error" });
